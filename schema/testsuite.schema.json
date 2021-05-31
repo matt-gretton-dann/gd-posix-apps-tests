@@ -1,0 +1,112 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "$id": "https://www.gretton-dann.org.uk/schema/testsuite.schema.json",
+  "title": "List of tests in a testsuite",
+  "description": "Map from testsuites to their tests",
+  "$ref": "#/definitions/testsuite",
+  "definitions": {
+    "testsuite": {
+      "type": "object",
+      "required": [
+        "title",
+        "copyright",
+        "license",
+        "url",
+        "tests"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "Name of the testsuite."
+        },
+        "copyright": {
+          "type": "string",
+          "description": "Testsuite copyright notice."
+        },
+        "license": {
+          "type": "string",
+          "description": "Testsuite SPDX License Identifier."
+        },
+        "license-file": {
+          "type": "string",
+          "description": "License text for the file.  Optional: Only needed if the standard SPDX license text isn't good enough."
+        },
+        "url": {
+          "type": "string",
+          "description": "URL to original source for the testsuite."
+        },
+        "hash": {
+          "type": "string",
+          "description": "SHA1 hash of git (or other DVCS) that identifies the original commit (Optional)."
+        },
+        "command": {
+          "type": "array",
+          "description": "Command to execute for each test.  Commands in individual tests over-ride this."
+        },
+        "expected-output": {
+          "type": "string",
+          "description": "Path to the expected output.  Individual tests may over-ride this."
+        },
+        "expected-error": {
+          "type": "string",
+          "description": "Path to the expected error.  Individual tests may over-ride this."
+        },
+        "tests": {
+          "$ref": "#definitions/tests"
+        }
+      }
+    },
+    "tests": {
+      "type": "array",
+      "description": "List of tests in the testsuite",
+      "items": {
+        "oneOf": [
+          {
+            "$ref": "#definitions/simple_test"
+          },
+          {
+            "$ref": "#definitions/full_test"
+          }
+        ]
+      }
+    },
+    "simple_test": {
+      "type": "string",
+      "description": "Name of test"
+    },
+    "full_test": {
+      "type": "object",
+      "description": "Detailed test description",
+      "required": [
+        "test"
+      ],
+      "properties": {
+        "test": {
+          "type": "string",
+          "description": "Name of test"
+        },
+        "command": {
+          "type": "array",
+          "description": "Command to execute for the test"
+        },
+        "expected-output": {
+          "type": "array",
+          "description": "Path to the expected output."
+        },
+        "expected-error": {
+          "type": "array",
+          "description": "Path to the expected error."
+        },
+        "error-test": {
+          "type": "boolean",
+          "default": false,
+          "description": "Is this an error test?"
+        },
+        "subtests": {
+          "$ref": "#definitions/tests"
+        }
+      }
+    }
+  }
+}

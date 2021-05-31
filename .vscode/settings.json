@@ -1,0 +1,27 @@
+{
+  "editor.rulers": [
+    100
+  ],
+  "[python]": {
+    "editor.rulers": [
+      79
+    ]
+  },
+  "python.autoComplete.extraPaths": [
+    "${workspaceFolder}/python-lib"
+  ],
+  "json.schemas": [
+    {
+      "fileMatch": [
+        "/testsuites.json"
+      ],
+      "url": "./schema/testsuites.schema.json"
+    },
+    {
+      "fileMatch": [
+        "/testsuite.json"
+      ],
+      "url": "./schema/testsuite.schema.json"
+    }
+  ]
+}

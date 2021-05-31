@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "$id": "https://www.gretton-dann.org.uk/schema/testsuites.schema.json",
+  "title": "Testsuite lists",
+  "description": "Map from utilities to their testsuites",
+  "type": "array",
+  "items": {
+    "$ref": "#/definitions/utility_testsuites"
+  },
+  "definitions": {
+    "utility_testsuites": {
+      "type": "object",
+      "required": [
+        "utility",
+        "testsuites"
+      ],
+      "properties": {
+        "utility": {
+          "type": "string",
+          "description": "Name of the utility being tested."
+        },
+        "testsuites": {
+          "type": "array",
+          "description": "List of testsuites for the utility",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "description": "Name of folder in testsuites directory to use."
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
