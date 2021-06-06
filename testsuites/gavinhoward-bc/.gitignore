@@ -1,0 +1,21 @@
+# Gitignore for gavinhoward-bc
+
+.log_bc_test.txt
+.log_bc.txt
+tests/bc/bessel_results.txt
+tests/bc/parse_results.txt
+tests/bc/print_results.txt
+
+tests/bc/bessel.txt
+tests/bc/modulous.txt
+tests/bc/parse.txt
+tests/bc/print.txt
+
+tests/bc/scripts/add.txt
+tests/bc/scripts/bessel.txt
+tests/bc/scripts/divide.txt
+tests/bc/scripts/multiply.txt
+tests/bc/scripts/parse.txt
+tests/bc/scripts/print.txt
+tests/bc/scripts/subtract.txt
+tests/bc_outputs
