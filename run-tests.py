@@ -24,6 +24,24 @@ import os
 import subprocess
 import sys
 
+
+class StoreDict(argparse.Action):
+    """
+    Store a Key[:Value] pair in a dictionary action for Argparse.
+
+    Value is optional.
+    """
+
+    def __call__(self, parser, args, values, option_string=None):
+        kv = values.split(':', 1)
+        d = getattr(args, self.dest) or dict()
+        if len(kv) > 1:
+            d[kv[0]] = kv[1]
+        else:
+            d[kv[0]] = None
+        setattr(args, self.dest, d)
+
+
 parser = argparse.ArgumentParser(description="Run tests.")
 parser.add_argument("--list-tests", action='store_true',
                     help="List tests that are selected by --tests option.")
@@ -32,11 +50,10 @@ parser.add_argument("tests", metavar="TEST",
 parser.add_argument("--utility", help="Utility executable to run")
 parser.add_argument("--info", action='store_true',
                     help="Display information about tests suites.")
-parser.add_argument("--expected-fail", action='append',
-                    metavar="TEST[:FILE]",
+parser.add_argument("--expected-fail", metavar="TEST[:FILE]", action=StoreDict,
                     help="test is expected to fail, optionally with output in given file.")
-parser.add_argument("--expected-pass", action='append', metavar="TEST:FILE",
-                    help="Test is expected pass with the output in FILE.")
+parser.add_argument("--expected-pass", metavar="TEST[:FILE]", action=StoreDict,
+                    help="Test is expected pass with the output in FILE, or don't care about the output.")
 args = parser.parse_args()
 
 
@@ -46,6 +63,9 @@ def script_dir():
 
 def var_replace(vars, value):
     """Replace all instances of ${x} in value with the value of vars['x']."""
+    if value is None:
+        return value
+
     for var, rep in vars.items():
         if isinstance(rep, str):
             value = value.replace(f"${{{var}}}", rep)
@@ -121,6 +141,11 @@ class UtilityTestsuites:
 
 
 def add_test(testsuite, test_state, fn):
+    if args.expected_fail is not None and test_state['test_full_name'] in args.expected_fail:
+        test_state['xfail'] = True
+        test_state['expected-output'] = args.expected_fail[test_state['test_full_name']]
+    if args.expected_pass is not None and test_state['test_full_name'] in args.expected_pass:
+        test_state['expected-output'] = args.expected_pass[test_state['test_full_name']]
     fn(testsuite, test_state)
 
 
@@ -240,6 +265,9 @@ class TestRunner:
 
         Returns True if data compares equal, or False otherwise.
         """
+        if expected is None or expected == "":
+            return True
+
         with open(expected) as expf:
             expected_text = expf.read()
 
