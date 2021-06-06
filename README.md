@@ -18,11 +18,11 @@ test.
 The Python script `test-driver.py` is used to run tests.  Basic usage is as follows:
 
 ```sh
-./test-driver.py --executable "<EXE>" --tests "<TEST SPECIFIERS>"
+./test-driver.py --utility UTIL TESTID...
 ```
 
-Tests specifiers look like paths and have the general form: `<UTIL>/<SOURCE>/<TEST>/...`.  Not
-all levels need to be specified so just specifying `--tests bc` will run all tests for the `bc`
+Test IDs look like paths and have the general form: `<UTIL>/<SUITE>/<TEST>/...`.  Not
+all levels need to be specified.  For example specifying `--tests bc` will run all tests for the `bc`
 utility.
 
 Full command line options are:
@@ -30,8 +30,7 @@ Full command line options are:
 | Option | Description |
 | :----- | :---------- |
 | `--list-tests` | Lists the tests that will be executed to standard output - will not run tests. |
-| `--tests <TESTS>` | Tests to run, can be specified multiple times. |
-| `--executable <EXE>` | Executable to pass to test drivers. |
+| `--utility <UTIL>` | Executable to pass to test drivers. |
 | `--info` | Display information - including author, license, and copyright about the specified tests. |
 | `--expected-fail <TEST>[:<FILE>]` | Specify that we expect <TEST> to fail.  <FILE> if specified gives the expected failure output.  May be specified multiple times. |
 | `--expected-pass <TEST>[:<FILE>]` | We expect <TEST> to have different (but valid) output as given in <FILE>. |

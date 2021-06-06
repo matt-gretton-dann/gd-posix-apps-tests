@@ -52,6 +52,16 @@
           "type": "string",
           "description": "Path to the expected error.  Individual tests may over-ride this."
         },
+        "error-test": {
+          "type": "boolean",
+          "default": false,
+          "description": "Is this an error test?"
+        },
+        "shell": {
+          "type": "boolean",
+          "default": false,
+          "description": "Should the command be executed by the shell?"
+        },
         "tests": {
           "$ref": "#definitions/tests"
         }
@@ -79,10 +89,10 @@
       "type": "object",
       "description": "Detailed test description",
       "required": [
-        "test"
+        "title"
       ],
       "properties": {
-        "test": {
+        "title": {
           "type": "string",
           "description": "Name of test"
         },
@@ -103,7 +113,12 @@
           "default": false,
           "description": "Is this an error test?"
         },
-        "subtests": {
+        "shell": {
+          "type": "boolean",
+          "default": false,
+          "description": "Should the command be executed by the shell?"
+        },
+        "tests": {
           "$ref": "#definitions/tests"
         }
       }

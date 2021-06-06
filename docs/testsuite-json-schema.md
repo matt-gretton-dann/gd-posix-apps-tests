@@ -39,6 +39,7 @@ testsuite.  It contains a top-level object with the following properties:
 | expected-output | Optional | Path to file of expected output. |
 | expected-error | Optional | Path to file of expected error. |
 | tests | Mandatory | Array of test names, or fuller test details. |
+| shell | Optional | Should the command be passed to the shell.  Default: false |
 
 The `tests` property is an array of testname strings, or test objects which have the following
 properties:
@@ -50,6 +51,7 @@ properties:
 | expected-error | Optional | Path to file of expected error, overrides any higher level. |
 | error-test | Optional | Boolean to indicate if this is an error test, default false. |
 | tests | Optional | Array of subtests. |
+| shell | Optional | Should the command be passed to the shell.  Default: false |
 
 The schema file is at [schema/testsuite.schema.json](../schema/testsuite.schema.json).
 
@@ -64,11 +66,12 @@ The following variables are defined:
 
 | Variable name | Contents |
 | :------------ | :------- |
-| ${utility} | Utility executable path |
-| ${python} | Python path |
-| ${dirsep} | Directory separator |
-| ${test_suite_path} | Path to the testsuite root. |
-| ${test_name} | Name of the test. |
+| ${utility} | Utility executable path.  |
+| ${python} | Python path  |
+| ${dir_sep} | Directory separator  |
+| ${test_suite_path} | Path to the testsuite root.  |
+| ${test_full_name} | Full name of the test.  |
+| ${test_leaf_name} | Lead name of the test.  |
 
 ## Calculating test properties
 
@@ -79,6 +82,7 @@ the test:
  * expected-output
  * expected-error
  * error-test
+ * shell
 
 To find the value of a property for a particular test a walk up the tree of containing objects is
 done starting at the test's definition.  The first definition of that property's value is then
