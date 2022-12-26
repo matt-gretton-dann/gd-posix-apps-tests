@@ -1,5 +1,5 @@
 {
-  "$schema": "http://json-schema.org/schema#",
+  "$schema": "https://json-schema.org/draft-07/schema#",
   "$id": "https://www.gretton-dann.org.uk/schema/testsuite.schema.json",
   "title": "List of tests in a testsuite",
   "description": "Map from testsuites to their tests",
@@ -63,7 +63,7 @@
           "description": "Should the command be executed by the shell?"
         },
         "tests": {
-          "$ref": "#definitions/tests"
+          "$ref": "#/definitions/tests"
         }
       }
     },
@@ -73,10 +73,10 @@
       "items": {
         "oneOf": [
           {
-            "$ref": "#definitions/simple_test"
+            "$ref": "#/definitions/simple_test"
           },
           {
-            "$ref": "#definitions/full_test"
+            "$ref": "#/definitions/full_test"
           }
         ]
       }
@@ -119,7 +119,7 @@
           "description": "Should the command be executed by the shell?"
         },
         "tests": {
-          "$ref": "#definitions/tests"
+          "$ref": "#/definitions/tests"
         }
       }
     }
