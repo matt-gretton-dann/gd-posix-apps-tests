@@ -1,5 +1,6 @@
 {
   "id": "gavinhoward-bc",
+  "title": "BC tests",
   "copyright": "2018-2021 Gavin D. Howard",
   "license": "BSD-2-Clause",
   "license-file": "${test_suite_path}${dir_sep}LICENSE.md",
@@ -9,6 +10,7 @@
   "tests": [
     {
       "id": "extra",
+      "title": "Extra tests",
       "command": [
         "${test_suite_path}${dir_sep}tests${dir_sep}${test_leaf_name}.sh",
         "bc",
@@ -23,6 +25,7 @@
     },
     {
       "id": "tests",
+      "title": "Tests",
       "command": [
         "${test_suite_path}${dir_sep}tests${dir_sep}test.sh",
         "bc",
@@ -80,6 +83,7 @@
     },
     {
       "id": "script",
+      "title": "Scripted tests",
       "command": [
         "${test_suite_path}${dir_sep}tests${dir_sep}script.sh",
         "bc",
