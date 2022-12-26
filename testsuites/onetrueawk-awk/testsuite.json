@@ -254,6 +254,47 @@
         "t.vf3",
         "t.x"
       ]
+    },
+    {
+      "id": "advanced",
+      "title": "Advanced Tests",
+      "command": [
+        "${test_suite_path}${dir_sep}Compare.T1",
+        "${utility}",
+        "${test_leaf_name}"
+      ],
+      "tests": [
+        "T.-f-f",
+        "T.argv",
+        "T.arnold",
+        "T.beebe",
+        "T.builtin",
+        "T.chem",
+        "T.close",
+        "T.clv",
+        "T.csconcat",
+        "T.delete",
+        "T.errmsg",
+        "T.expr",
+        "T.exprconv",
+        "T.flags",
+        "T.func",
+        "T.gawk",
+        "T.getline",
+        "T.int-expr",
+        "T.latin1",
+        "T.lilly",
+        "T.main",
+        "T.misc",
+        "T.nextfile",
+        "T.overflow",
+        "T.re",
+        "T.recache",
+        "T.redir",
+        "T.split",
+        "T.sub",
+        "T.system"
+      ]
     }
   ]
 }

@@ -1,8 +1,29 @@
-echo T.beebe: tests from nelson beebe from gawk test suite
+#!/bin/sh
+# Original script:
+# Copyright 1997 Lucent Technologies.  See LICENCE for licensing information.
+#
+# Modifications:
+# Copyright 2022 Matthew Gretton-Dann
+# Licence: SPDX Identifier: Apache-2.0
+
+set -eu
+
+run_dir="$(pwd)"
+cd "$(dirname "$0")"
+src_dir="$(pwd)"
+cd "${run_dir}"
+
+#echo T.beebe: tests from nelson beebe from gawk test suite
 # for which thanks.
 
 rm -rf beebe
-tar xf beebe.tar	# creates beebe
+tar xf "$src_dir/beebe.tar"	# creates beebe
 cd beebe
-make all | sed 's/^/	/' | grep -v cmp
-
+ec=1
+make all "AWK=$awk" | sed 's/^/	/' | grep -v cmp || ec=0
+if [ "$ec" -me 0 ]; then
+  echo "$(basename "$0"): FAIL"
+  exit 1
+else
+  echo "$(basename "$0"): PASS"
+fi

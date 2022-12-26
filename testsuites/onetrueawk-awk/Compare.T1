@@ -1,10 +1,30 @@
+#!/bin/sh
+# Original script:
+# Copyright 1997 Lucent Technologies.  See LICENCE for licensing information.
+#
+# Modifications:
+# Copyright 2022 Matthew Gretton-Dann
+# Licence: SPDX Identifier: Apache-2.0
 
-oldawk=${oldawk-awk}
-awk=${awk-../a.out}
+set -eu
 
-echo oldawk=$oldawk, awk=$awk
+run_dir="$(pwd)"
+cd "$(dirname "$0")"
+src_dir="$(pwd)"
+cd "${run_dir}"
 
-for i in T.*
-do 
-	$i
+if [ $# -lt 2 ]; then
+  echo "Usage: $0 awk_under_test tests..." >& 2
+  exit 2
+fi
+awk="$1"
+shift
+
+oldawk="BROKEN AWK"
+
+while [ $# -ge 1 ];
+do
+  i="$1"
+  shift
+  awk="$awk" oldawk="$oldawk" "$src_dir/$i"
 done

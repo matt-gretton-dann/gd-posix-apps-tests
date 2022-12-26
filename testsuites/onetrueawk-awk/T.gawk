@@ -1,12 +1,44 @@
-echo T.gawk: tests adapted from gawk test suite
+#!/bin/sh
+# Original script:
+# Copyright 1997 Lucent Technologies.  See LICENCE for licensing information.
+#
+# Modifications:
+# Copyright 2022 Matthew Gretton-Dann
+# Licence: SPDX Identifier: Apache-2.0
+
+run_dir="$(pwd)"
+cd "$(dirname "$0")"
+src_dir="$(pwd)"
+cd "${run_dir}"
+
+echo() {
+  if [ "X$1" = "X-n" ]
+  then
+      shift
+      printf "%s" "$*"
+  else
+      printf "%s\n" "$*"
+  fi
+}
+
+testname="$(basename "$0")"
+exit_code=0
+
+error() {
+  echo "$testname: FAIL - $1"
+  exit_code=1
+}
+
+#echo T.gawk: tests adapted from gawk test suite
 # for which thanks.
 
-awk=${awk-../a.out}
+awk="${awk-../a.out}"
+#echo="${echo-echo}"
 
-# arrayref:  
-./echo '1
+# arrayref:
+echo '1
 1' >foo1
-$awk '
+"$awk" '
 	BEGIN { # foo[10] = 0		# put this line in and it will work
 		test(foo); print foo[1]
 		test2(foo2); print foo2[1]
@@ -14,25 +46,25 @@ $awk '
 	function test(foo) { test2(foo) }
 	function test2(bar) { bar[1] = 1 }
 ' >foo2
-cmp -s foo1 foo2 || ./echo 'BAD: T.gawk arrayref'
+cmp -s foo1 foo2 || error 'arrayref'
 
 # asgext
-./echo '1 2 3
+echo '1 2 3
 1
 1 2 3 4' >foo
-./echo '3
+echo '3
 1 2 3 a
 
 1   a
 3
 1 2 3 a' >foo1
 $awk '{ print $3; $4 = "a"; print }' foo >foo2
-cmp -s foo1 foo2 || ./echo 'BAD: T.gawk asgext'
+cmp -s foo1 foo2 || error 'asgext'
 
 # backgsub:
-./echo 'x\y
+echo 'x\y
 x\\y' >foo
-./echo 'x\y
+echo 'x\y
 xAy
 xAy
 xAAy' >foo1
@@ -40,14 +72,14 @@ $awk '{	x = y = $0
         gsub( /\\\\/, "A", x); print x
         gsub( "\\\\", "A", y); print y
 }' foo >foo2
-cmp -s foo1 foo2 || ./echo 'BAD: T.gawk backgsub'
+cmp -s foo1 foo2 || error 'backgsub'
 
 
 # backgsub2:
-./echo 'x\y
+echo 'x\y
 x\\y
 x\\\y' >foo
-./echo '	x\y
+echo '	x\y
 	x\y
 	x\y
 	x\y
@@ -62,13 +94,13 @@ $awk '{	w = x = y = z = $0
         gsub( /\\\\/, "\\\\\\", y); print "	" y
 }
 ' foo >foo2
-cmp -s foo1 foo2 || ./echo 'BAD: T.gawk backgsub2'
+cmp -s foo1 foo2 || error 'backgsub2'
 
 
 # backgsub3:
-./echo 'xax
+echo 'xax
 xaax' >foo
-./echo '	xax
+echo '	xax
 	x&x
 	x&x
 	x\ax
@@ -89,13 +121,13 @@ $awk '{	w = x = y = z = z1 = z2 = $0
         gsub( /a/, "\\\\\\&", z2); print "	" z2
 }
 ' foo >foo2
-cmp -s foo1 foo2 || ./echo 'BAD: T.gawk backgsub3'
+cmp -s foo1 foo2 || error 'backgsub3'
 
 
 # backsub3:
-./echo 'xax
+echo 'xax
 xaax' >foo
-./echo '	xax
+echo '	xax
 	x&x
 	x&x
 	x\ax
@@ -116,13 +148,13 @@ $awk '{	w = x = y = z = z1 = z2 = $0
         sub( /a/, "\\\\\\&", z2); print "	" z2
 }
 ' foo >foo2
-cmp -s foo1 foo2 || ./echo 'BAD: T.gawk backsub3'
+cmp -s foo1 foo2 || error 'backsub3'
 
 
 # backsub:
-./echo 'x\y
+echo 'x\y
 x\\y' >foo
-./echo 'x\y
+echo 'x\y
 x\\y
 x\\y
 x\\\y' >foo1
@@ -130,18 +162,18 @@ $awk '{	x = y = $0
         sub( /\\\\/, "\\\\", x); print x
         sub( "\\\\", "\\\\", y); print y
 }' foo >foo2
-cmp -s foo1 foo2 || ./echo 'BAD: T.gawk backsub'
+cmp -s foo1 foo2 || error 'backsub'
 
 
 
 
-# dynlj:  
-./echo 'hello               world' >foo1
+# dynlj:
+echo 'hello               world' >foo1
 $awk 'BEGIN { printf "%*sworld\n", -20, "hello" }' >foo2
-cmp -s foo1 foo2 || ./echo 'BAD: T.gawk dynlj'
+cmp -s foo1 foo2 || error 'dynlj'
 
-# fsrs:  
-./echo 'a b
+# fsrs:
+echo 'a b
 c d
 e f
 
@@ -149,7 +181,7 @@ e f
 3 4
 5 6' >foo
 # note -n:
-./echo -n 'a b
+echo -n 'a b
 c d
 e f1 2
 3 4
@@ -163,33 +195,33 @@ BEGIN {
         split ($2,f," ")
         print $0;
 }' foo >foo2
-cmp -s foo1 foo2 || ./echo 'BAD: T.gawk fsrs'
+cmp -s foo1 foo2 || error 'fsrs'
 
 # intest
-./echo '0 1' >foo1
+echo '0 1' >foo1
 $awk 'BEGIN {
 	bool = ((b = 1) in c);
 	print bool, b	# gawk-3.0.1 prints "0 "; should print "0 1"
 }' >foo2
-cmp -s foo1 foo2 || ./echo 'BAD: T.gawk intest'
+cmp -s foo1 foo2 || error 'intest'
 
-# intprec:  
-./echo '0000000005:000000000e' >foo1
+# intprec:
+echo '0000000005:000000000e' >foo1
 $awk 'BEGIN { printf "%.10d:%.10x\n", 5, 14 }' >foo2
-cmp -s foo1 foo2 || ./echo 'BAD: T.gawk intprec'
+cmp -s foo1 foo2 || error 'intprec'
 
-# litoct:  
-./echo 'axb
+# litoct:
+echo 'axb
 ab
 a*b' >foo
-./echo 'no match
+echo 'no match
 no match
 match' >foo1
 $awk '{ if (/a\52b/) print "match" ; else print "no match" }' foo >foo2
-cmp -s foo1 foo2 || ./echo 'BAD: T.gawk litoct'
+cmp -s foo1 foo2 || error 'litoct'
 
-# math:  
-./echo 'cos(0.785398) = 0.707107
+# math:
+echo 'cos(0.785398) = 0.707107
 sin(0.785398) = 0.707107
 e = 2.718282
 log(e) = 1.000000
@@ -205,15 +237,15 @@ $awk 'BEGIN {
 	printf "sqrt(pi ^ 2) = %f\n", sqrt(pi ^ 2)
 	printf "atan2(1, 1) = %f\n", atan2(1, 1)
 }' >foo2
-cmp -s foo1 foo2 || ./echo 'BAD: T.gawk math'
+cmp -s foo1 foo2 || error 'math'
 
-# nlfldsep:  
-./echo 'some stuff
+# nlfldsep:
+echo 'some stuff
 more stuffA
 junk
 stuffA
 final' >foo
-./echo '4
+echo '4
 some
 stuff
 more
@@ -229,36 +261,36 @@ final
 $awk 'BEGIN { RS = "A" }
 {print NF; for (i = 1; i <= NF; i++) print $i ; print ""}
 ' foo >foo2
-cmp -s foo1 foo2 || ./echo 'BAD: T.gawk nlfldsep'
+cmp -s foo1 foo2 || error 'nlfldsep'
 
-# numsubstr:  
-./echo '5000
+# numsubstr:
+echo '5000
 10000
 5000' >foo
-./echo '000
+echo '000
 1000
 000' >foo1
 $awk '{ print substr(1000+$1, 2) }' foo >foo2
-cmp -s foo1 foo2 || ./echo 'BAD: T.gawk numsubstr'
+cmp -s foo1 foo2 || error 'numsubstr'
 
-# pcntplus:  
-./echo '+3 4' >foo1
+# pcntplus:
+echo '+3 4' >foo1
 $awk 'BEGIN { printf "%+d %d\n", 3, 4 }' >foo2
-cmp -s foo1 foo2 || ./echo 'BAD: T.gawk pcntplus'
+cmp -s foo1 foo2 || error 'pcntplus'
 
-# prt1eval:  
-./echo 1 >foo1
+# prt1eval:
+echo 1 >foo1
 $awk 'function tst () {
 	sum += 1
 	return sum
 }
 BEGIN { OFMT = "%.0f" ; print tst() }
 ' >foo2
-cmp -s foo1 foo2 || ./echo 'BAD: T.gawk prt1eval'
+cmp -s foo1 foo2 || error 'prt1eval'
 
-# reparse:  
-./echo '1 axbxc 2' >foo
-./echo '1
+# reparse:
+echo '1 axbxc 2' >foo
+echo '1
 1 a b c 2
 1 a b' >foo1
 $awk '{	gsub(/x/, " ")
@@ -267,28 +299,28 @@ $awk '{	gsub(/x/, " ")
 	print $0
 	print $1, $2, $3
 }' foo >foo2
-cmp -s foo1 foo2 || ./echo 'BAD: T.gawk reparse'
+cmp -s foo1 foo2 || error 'reparse'
 
-# rswhite:  
-./echo '    a b
+# rswhite:
+echo '    a b
 c d' >foo
-./echo '<    a b
+echo '<    a b
 c d>' >foo1
 $awk 'BEGIN { RS = "" }
 { printf("<%s>\n", $0) }' foo  >foo2
-cmp -s foo1 foo2 || ./echo 'BAD: T.gawk rswhite'
+cmp -s foo1 foo2 || error 'rswhite'
 
-# splitvar:  
-./echo 'Here===Is=Some=====Data' >foo
-./echo 4 >foo1
+# splitvar:
+echo 'Here===Is=Some=====Data' >foo
+echo 4 >foo1
 $awk '{	sep = "=+"
 	n = split($0, a, sep)
 	print n
 }' foo >foo2
-cmp -s foo1 foo2 || ./echo 'BAD: T.gawk splitvar'
+cmp -s foo1 foo2 || error 'splitvar'
 
-# splitwht:  
-./echo '4
+# splitwht:
+echo '4
 5' >foo1
 $awk 'BEGIN {
 	str = "a   b\t\tc d"
@@ -297,20 +329,20 @@ $awk 'BEGIN {
 	m = split(str, b, / /)
 	print m
 }' >foo2
-cmp -s foo1 foo2 || ./echo 'BAD: T.gawk splitwht'
+cmp -s foo1 foo2 || error 'splitwht'
 
-# sprintfc:  
-./echo '65
+# sprintfc:
+echo '65
 66
 foo' >foo
-./echo 'A 65
+echo 'A 65
 B 66
 f foo' >foo1
 $awk '{ print sprintf("%c", $1), $1 }' foo >foo2
-cmp -s foo1 foo2 || ./echo 'BAD: T.gawk sprintfc'
+cmp -s foo1 foo2 || error 'sprintfc'
 
-# substr:  
-./echo 'xxA                                      
+# substr:
+echo 'xxA' '                                    ' '
 xxab
 xxbc
 xxab
@@ -334,11 +366,12 @@ $awk 'BEGIN {
 	print "xx" substr("abcdef", 7, 2)
 	exit (0)
 }' >foo2
-cmp -s foo1 foo2 || ./echo 'BAD: T.gawk substr'
+diff -up foo1 foo2
+cmp -l foo1 foo2 || error 'substr'
 
-# fldchg:  
-./echo 'aa aab c d e f' >foo
-./echo '1: + +b c d e f
+# fldchg:
+echo 'aa aab c d e f' >foo
+echo '1: + +b c d e f
 2: + +b <c> d e f
 2a:%+%+b%<c>%d%e' >foo1
 $awk '{	gsub("aa", "+")
@@ -347,33 +380,33 @@ $awk '{	gsub("aa", "+")
 	print "2:", $0
 	print "2a:" "%" $1 "%" $2 "%" $3 "%" $4 "%" $5
 }' foo >foo2
-cmp -s foo1 foo2 || ./echo 'BAD: T.gawk fldchg'
+cmp -s foo1 foo2 || error 'fldchg'
 
-# fldchgnf:  
-./echo 'a b c d' >foo
-./echo 'a::c:d
+# fldchgnf:
+echo 'a b c d' >foo
+echo 'a::c:d
 4' >foo1
 $awk '{ OFS = ":"; $2 = ""; print $0; print NF }' foo >foo2
-cmp -s foo1 foo2 || ./echo 'BAD: T.gawk fldchgnf'
+cmp -s foo1 foo2 || error 'fldchgnf'
 
 # funstack:
-# ./echo '	funstack test takes 5-10 sec, replicates part of T.beebe'
-$awk -f funstack.awk funstack.in >foo 2>&1
-cmp -s foo funstack.ok || ./echo 'BAD: T.gawk funstack'
+# echo '	funstack test takes 5-10 sec, replicates part of T.beebe'
+$awk -f "$src_dir/funstack.awk" "$src_dir/funstack.in" >foo 2>&1
+cmp -s foo "$src_dir/funstack.ok" || error 'funstack'
 
 # OFMT from arnold robbins 6/02:
 #	5.7 with OFMT = %0.f is 6
-./echo '6' >foo1
+echo '6' >foo1
 $awk 'BEGIN {
 	OFMT = "%.0f"
 	print 5.7
 }' >foo2
-cmp -s foo1 foo2 || ./echo 'BAD: T.gawk ofmt'
+cmp -s foo1 foo2 || error 'ofmt'
 
 
 ### don't know what this is supposed to do now.
-### # convfmt:  
-### ./echo 'a =  123.46
+### # convfmt:
+### echo 'a =  123.46
 ### a =  123.456
 ### a =  123.456' >foo1
 ### $awk 'BEGIN {
@@ -387,4 +420,4 @@ cmp -s foo1 foo2 || ./echo 'BAD: T.gawk ofmt'
 ### 	a += 0                  # make a numeric only again
 ### 	print "a = ", a    # use a as string
 ### }' >foo2
-### cmp -s foo1 foo2 || ./echo 'BAD: T.gawk convfmt'
+### cmp -s foo1 foo2 || echo 'BAD: T.gawk convfmt'

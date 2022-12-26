@@ -1,19 +1,30 @@
-echo T.arnold: test fixes by Arnold Robbins 8/18
+#!/bin/sh
+# Original script:
+# Copyright 1997 Lucent Technologies.  See LICENCE for licensing information.
+#
+# Modifications:
+# Copyright 2022 Matthew Gretton-Dann
+# Licence: SPDX Identifier: Apache-2.0
+
+#echo T.arnold: test fixes by Arnold Robbins 8/18
 # for which many thanks
 
-rm -rf arnold-fixes
-tar xf arnold-fixes.tar
-cd arnold-fixes
+run_dir="$(pwd)"
+cd "$(dirname "$0")" || exit 1
+src_dir="$(pwd)"
+cd "${run_dir}" || exit 1
 
-pwd
-
-awk=../../a.out
-ls -l $awk
-
-for i in *.awk
+ec=0
+for i in "$src_dir/arnold-fixes/"*.awk
 do
-  name=$(basename $i .awk)
-  #echo $name:
-  $awk -f $name.awk >foo.$name
-  diff $name.ok foo.$name || echo "BAD: T.arnold ($name)"
+  name="$(basename $i .awk)"
+  "$awk" -f "$src_dir/arnold-fixes/$name.awk" >foo.$name
+  if diff "$src_dir/arnold-fixes/$name.ok" "foo.$name"; then
+    echo "$(basename "$0"): PASS - $name"
+  else
+    echo "$(basename "$0"): FAIL - $name"
+    ec=1
+  fi
 done
+
+exit "$ec"
