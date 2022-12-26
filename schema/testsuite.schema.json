@@ -8,6 +8,7 @@
     "testsuite": {
       "type": "object",
       "required": [
+        "id",,
         "title",
         "copyright",
         "license",
@@ -19,6 +20,10 @@
         "title": {
           "type": "string",
           "description": "Name of the testsuite."
+        },
+        "id": {
+          "type": "string",
+          "description": "ID of testsuite."
         },
         "copyright": {
           "type": "string",

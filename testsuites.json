@@ -1,9 +1,14 @@
 [
   {
+    "utility": "awk",
+    "testsuites": [
+      "onetrueawk-awk"
+    ]
+  },
+  {
     "utility": "bc",
     "testsuites": [
-      "gavinhoward-bc",
-      "onetrueawk-awk"
+      "gavinhoward-bc"
     ]
   }
 ]
