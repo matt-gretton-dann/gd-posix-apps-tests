@@ -1,0 +1,114 @@
+{
+  "id": "onetrueawk-awk",
+  "title:": "Tests for AWK",
+  "copyright": "1997 Lucent Technologies",
+  "license": "UNKNOWN (MIT-like)",
+  "license-file": "${test_suite_path}${dir_sep}LICENSE",
+  "url": "https://github.com/onetrueawk/awk",
+  "hash": "5e49ea4d1f71d9134734011f2151cae4dbec5e5f",
+  "shell": true,
+  "tests": [
+    {
+      "id": "extra",
+      "title":
+      "command": [
+        "${test_suite_path}${dir_sep}tests${dir_sep}${test_leaf_name}.sh",
+        "bc",
+        "${utility}"
+      ],
+      "tests": [
+        "stdin",
+        "read",
+        "errors",
+        "other"
+      ]
+    },
+    {
+      "id": "tests",
+      "command": [
+        "${test_suite_path}${dir_sep}tests${dir_sep}test.sh",
+        "bc",
+        "${test_leaf_name}",
+        "1",
+        "0",
+        "${utility}"
+      ],
+      "tests": [
+        "decimal",
+        "print",
+        "print2",
+        "parse",
+        "length",
+        "scale",
+        "shift",
+        "add",
+        "subtract",
+        "multiply",
+        "divide",
+        "power",
+        "trunc",
+        "places",
+        "vars",
+        "boolean",
+        "comp",
+        "abs",
+        "assignments",
+        "functions",
+        "scientific",
+        "engineering",
+        "globals",
+        "strings",
+        "letters",
+        "exponent",
+        "log",
+        "pi",
+        "arctangent",
+        "sine",
+        "cosine",
+        "bessel",
+        "arrays",
+        "misc",
+        "misc1",
+        "misc2",
+        "misc3",
+        "misc4",
+        "misc5",
+        "misc6",
+        "misc7",
+        "void",
+        "rand",
+        "lib2"
+      ]
+    },
+    {
+      "id": "script",
+      "command": [
+        "${test_suite_path}${dir_sep}tests${dir_sep}script.sh",
+        "bc",
+        "${test_leaf_name}.bc",
+        "1",
+        "1",
+        "1",
+        "0",
+        "${utility}"
+      ],
+      "tests": [
+        "print",
+        "parse",
+        "add",
+        "subtract",
+        "multiply",
+        "divide",
+        "array",
+        "atan",
+        "bessel",
+        "functions",
+        "globals",
+        "len",
+        "rand",
+        "references",
+        "screen"
+      ]
+    }
+  ]
+}

@@ -2,7 +2,8 @@
   {
     "utility": "bc",
     "testsuites": [
-      "gavinhoward-bc"
+      "gavinhoward-bc",
+      "onetrueawk-awk"
     ]
   }
 ]
