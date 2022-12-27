@@ -1,3 +1,18 @@
+#!/bin/sh
+# Original script:
+# Copyright 1997 Lucent Technologies.  See LICENCE for licensing information.
+#
+# Modifications:
+# Copyright 2022 Matthew Gretton-Dann
+# Licence: SPDX Identifier: Apache-2.0
+
+testname="$(basename "$0")"
+exit_code=0
+error() {
+  echo "$testname: FAIL - $1"
+  exit_code=1
+}
+
 echo T.recache: test re cache in b.c
 	# thanks to ross ridge for this horror
 
@@ -19,7 +34,7 @@ BEGIN {
         #
         # Now evalutate an expression that uses two run-time REs
         # that have never been used before.  The second RE will
-        # push the first out of the cache while the first RE is 
+        # push the first out of the cache while the first RE is
         # still needed.
         #
         x = "a"
@@ -30,4 +45,6 @@ BEGIN {
         print x
 }
 ' >foo2
-diff foo1 foo2 || echo 'BAD: T.recache'
+diff foo1 foo2 || error 'T.recache'
+
+exit $exit_code

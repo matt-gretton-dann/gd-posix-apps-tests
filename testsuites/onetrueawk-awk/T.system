@@ -1,3 +1,18 @@
+#!/bin/sh
+# Original script:
+# Copyright 1997 Lucent Technologies.  See LICENCE for licensing information.
+#
+# Modifications:
+# Copyright 2022 Matthew Gretton-Dann
+# Licence: SPDX Identifier: Apache-2.0
+
+testname="$(basename "$0")"
+exit_code=0
+error() {
+  echo "$testname: FAIL - $1"
+  exit_code=1
+}
+
 echo T.system: test system built-in
 
 awk=${awk-../a.out}
@@ -12,4 +27,6 @@ $awk 'BEGIN {
 echo $? >>foo
 echo "3
 4" >foo1
-diff foo foo1 || echo 'BAD: T.system (1)'
+diff foo foo1 || error '(1)'
+
+exit $exit_code

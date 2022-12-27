@@ -1,3 +1,18 @@
+#!/bin/sh
+# Original script:
+# Copyright 1997 Lucent Technologies.  See LICENCE for licensing information.
+#
+# Modifications:
+# Copyright 2022 Matthew Gretton-Dann
+# Licence: SPDX Identifier: Apache-2.0
+
+testname="$(basename "$0")"
+exit_code=0
+error() {
+  echo "$testname: FAIL - $1"
+  exit_code=1
+}
+
 echo T.lilly: miscellaneous RE tests from Bruce Lilly
 
 awk=${awk-../a.out}
@@ -24,5 +39,7 @@ echo `cat lilly.progs | wc -l` tests
 
 sed -e 's/awk://' -e 's/Syntax/syntax/' -e '/warning:/d' foo1 >glop1
 sed 's/..\/a.out://' foo2 >glop2
-diff glop1 glop2 >lilly.diff || echo 'bad: T.lilly is different'
+diff glop1 glop2 >lilly.diff || error 'is different'
 echo
+
+exit $exit_code

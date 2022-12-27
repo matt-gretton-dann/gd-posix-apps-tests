@@ -1,4 +1,12 @@
 #!/bin/sh
+# Original script:
+# Copyright 1997 Lucent Technologies.  See LICENCE for licensing information.
+#
+# Modifications:
+# Copyright 2022 Matthew Gretton-Dann
+# Licence: SPDX Identifier: Apache-2.0
+
+#!/bin/sh
 
 awk=${awk-../a.out}
 
@@ -51,7 +59,7 @@ c:d:e
 e:f:g:h' > $TEMP0
 $awk 'BEGIN {
 	FS = ":"
-	while (getline <"'$TEMP0'" > 0) 
+	while (getline <"'$TEMP0'" > 0)
 		print NF
 }' > $TEMP1
 echo '0

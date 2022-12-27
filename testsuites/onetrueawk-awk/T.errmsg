@@ -1,4 +1,19 @@
-echo T.errmsg:  check some error messages
+#!/bin/sh
+# Original script:
+# Copyright 1997 Lucent Technologies.  See LICENCE for licensing information.
+#
+# Modifications:
+# Copyright 2022 Matthew Gretton-Dann
+# Licence: SPDX Identifier: Apache-2.0
+
+testname="$(basename "$0")"
+exit_code=0
+error() {
+  echo "$testname: FAIL - $1"
+  exit_code=1
+}
+
+#echo T.errmsg:  check some error messages
 
 awk=${awk-../a.out}
 
@@ -192,24 +207,26 @@ BEGIN { print }
 echo '	running tests in foo.sh'
 sh foo.sh
 
-test -r core && echo BAD: someone dropped core 1>&2
+test -r core && error 'someone dropped core'
 
 echo xxx >foo0
 $awk '{print x}' x='a
 b' foo0 >foo1 2>foo2
-grep 'newline in string' foo2 >/dev/null || echo 'BAD: T.errmsg newline in string'
+grep 'newline in string' foo2 >/dev/null || error 'newline in string'
 
 $awk -safe 'BEGIN{"date" | getline}' >foo 2>foo2
-grep 'cmd | getline is unsafe' foo2 >/dev/null || echo 'BAD: T.errmsg cmd|getline unsafe'
+grep 'cmd | getline is unsafe' foo2 >/dev/null || error 'cmd|getline unsafe'
 
 $awk -safe 'BEGIN{print >"foo"}' >foo 2>foo2
-grep 'print > is unsafe' foo2 >/dev/null || echo 'BAD: T.errmsg print > unsafe'
+grep 'print > is unsafe' foo2 >/dev/null || error 'print > unsafe'
 
 $awk -safe 'BEGIN{print >> "foo"}' >foo 2>foo2
-grep 'print >> is unsafe' foo2 >/dev/null || echo 'BAD: T.errmsg print >> unsafe'
+grep 'print >> is unsafe' foo2 >/dev/null || error 'print >> unsafe'
 
 $awk -safe 'BEGIN{print | "foo"}' >foo 2>foo2
-grep 'print | is unsafe' foo2 >/dev/null || echo 'BAD: T.errmsg print | unsafe'
+grep 'print | is unsafe' foo2 >/dev/null || error 'print | unsafe'
 
 $awk -safe 'BEGIN {system("date")}' >foo 2>foo2
-grep 'system is unsafe' foo2 >/dev/null || echo 'BAD: T.errmsg system unsafe'
+grep 'system is unsafe' foo2 >/dev/null || error 'system unsafe'
+
+exit $exit_code

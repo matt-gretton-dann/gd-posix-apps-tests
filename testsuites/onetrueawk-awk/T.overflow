@@ -1,3 +1,18 @@
+#!/bin/sh
+# Original script:
+# Copyright 1997 Lucent Technologies.  See LICENCE for licensing information.
+#
+# Modifications:
+# Copyright 2022 Matthew Gretton-Dann
+# Licence: SPDX Identifier: Apache-2.0
+
+testname="$(basename "$0")"
+exit_code=0
+error() {
+  echo "$testname: FAIL - $1"
+  exit_code=1
+}
+
 echo T.overflow: test some overflow conditions
 
 awk=${awk-../a.out}
@@ -8,7 +23,7 @@ $awk 'BEGIN {
  	exit
 }' >foo1
 $awk '{print}' foo1 >foo2
-cmp -s foo1 foo2 || echo 'BAD: T.overflow record 1'
+cmp -s foo1 foo2 || error 'record 1'
 
 echo 'abcdefghijklmnopqsrtuvwxyz' >foo1
 echo hello | $awk '
@@ -16,7 +31,7 @@ echo hello | $awk '
    $0 = s
    print $1
  }'  >foo2
-cmp -s foo1 foo2 || echo 'BAD: T.overflow abcdef'
+cmp -s foo1 foo2 || error 'abcdef'
 
 # default input record 3072, fields 200:
 $awk '
@@ -28,7 +43,7 @@ BEGIN {
 	}
 } ' >foo1
 $awk '{$1 = " 123456789"; print}' foo1 >foo2
-cmp -s foo1 foo2 || echo 'BAD: T.overflow -mr -mf set $1'
+cmp -s foo1 foo2 || error '-mr -mf set $1'
 
 $awk '
 BEGIN {
@@ -41,7 +56,7 @@ BEGIN {
 $awk  '{print NF}' foo >foo1
 echo '500
 500' >foo2
-cmp -s foo1 foo2 || echo 'BAD: T.overflow -mr -mf NF'
+cmp -s foo1 foo2 || error '-mr -mf NF'
 
 rm -f core
 # this should not drop core
@@ -50,7 +65,7 @@ $awk 'BEGIN {
 	if ("x" ~ "[" s "]")
 		print "ugh"
 }' >foo 2>foo
-test -r core && echo 1>&2 "BAD: T.overflow too long char class dropped core"
+test -r core && error "too long char class dropped core"
 
 echo 4000004 >foo1
 $awk '
@@ -61,7 +76,7 @@ BEGIN {
 	x4 = sprintf("%-1000000.1000000s\n", "goodbye")
 	print length(x1 x2 x3 x4)
 }' >foo2
-cmp -s foo1 foo2 || echo 'BAD: T.overflow huge sprintfs'
+cmp -s foo1 foo2 || error 'huge sprintfs'
 
 echo 0 >foo1
 $awk '
@@ -75,12 +90,14 @@ BEGIN {
 		n++
 	print n
 }' >foo2
-cmp -s foo1 foo2 || echo 'BAD: T.overflow big array'
+cmp -s foo1 foo2 || error 'big array'
 
 echo x >foo1
 $awk '{print $40000000000000}' <foo1 >foo2 2>foo
-grep "out of range field" foo >/dev/null || echo 1>&2 "BAD: T.overflow \$400000"
+grep "out of range field" foo >/dev/null || error "\$400000"
 
 rm -rf /tmp/awktestfoo*
 $awk 'BEGIN { for (i=1; i <= 1000; i++) print i >("/tmp/awktestfoo" i) }'
-ls /tmp/awktestfoo* | grep '1000' >/dev/null || echo 1>&2 "BAD: T.overflow openfiles"
+ls /tmp/awktestfoo* | grep '1000' >/dev/null || error "openfiles"
+
+exit $exit_code

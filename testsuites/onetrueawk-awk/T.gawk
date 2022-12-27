@@ -421,3 +421,5 @@ cmp -s foo1 foo2 || error 'ofmt'
 ### 	print "a = ", a    # use a as string
 ### }' >foo2
 ### cmp -s foo1 foo2 || echo 'BAD: T.gawk convfmt'
+
+exit $exit_code

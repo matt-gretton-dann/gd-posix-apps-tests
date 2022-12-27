@@ -1,4 +1,19 @@
-echo T.csconcat: test constant string concatentation
+#!/bin/sh
+# Original script:
+# Copyright 1997 Lucent Technologies.  See LICENCE for licensing information.
+#
+# Modifications:
+# Copyright 2022 Matthew Gretton-Dann
+# Licence: SPDX Identifier: Apache-2.0
+
+testname="$(basename "$0")"
+exit_code=0
+error() {
+  echo "$testname: FAIL - $1"
+  exit_code=1
+}
+
+#echo T.csconcat: test constant string concatentation
 
 awk=${awk-../a.out}
 
@@ -16,14 +31,14 @@ BEGIN {
 }
 ' > foo1
 
-cat << \EOF > foo2
-abcdef aaa
+echo "abcdef aaa
 helloworld
 
  hello
-hello 
+hello" "
 hello world
-hello world
-EOF
+hello world" >foo2
 
-diff foo1 foo2 || echo 'BAD: T.csconcat (1)'
+cmp -l foo1 foo2
+diff foo1 foo2 || error '(1)'
+exit $exit_code

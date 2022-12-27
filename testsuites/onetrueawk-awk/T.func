@@ -1,4 +1,19 @@
-echo T.func: test user-defined functions
+#!/bin/sh
+# Original script:
+# Copyright 1997 Lucent Technologies.  See LICENCE for licensing information.
+#
+# Modifications:
+# Copyright 2022 Matthew Gretton-Dann
+# Licence: SPDX Identifier: Apache-2.0
+
+testname="$(basename "$0")"
+exit_code=0
+error() {
+  echo "$testname: FAIL - $1"
+  exit_code=1
+}
+
+#echo T.func: test user-defined functions
 
 awk=${awk-../a.out}
 
@@ -22,7 +37,7 @@ echo '1
 0
 0
 1' >foo2
-diff foo1 foo2 || echo 'BAD: T.func (function return type)'
+diff foo1 foo2 || error '(function return type)'
 
 echo 'data: data' >foo1
 $awk '
@@ -30,7 +45,7 @@ function test1(array) { array["test"] = "data" }
 function test2(array) { return(array["test"]) }
 BEGIN { test1(foo); print "data: " test2(foo) }
 ' >foo2
-diff foo1 foo2 || echo 'BAD: T.func (array type)'
+diff foo1 foo2 || error '(array type)'
 
 $awk '
 BEGIN	{ code() }
@@ -39,7 +54,7 @@ function code() { ; }
 function codeout(ex) { print ex }
 ' /dev/null >foo1
 echo x >foo2
-diff foo1 foo2 || echo 'BAD: T.func (argument passing)'
+diff foo1 foo2 || error '(argument passing)'
 
 $awk '
 BEGIN { unireghf() }
@@ -57,7 +72,7 @@ function rcell(cellname,hfeed) {
 ' >foo1
 echo "foo
 bar" >foo2
-diff foo1 foo2 || echo 'BAD: T.func (convert arg to array)'
+diff foo1 foo2 || error '(convert arg to array)'
 
 $awk '
 function f(n) {
@@ -91,7 +106,7 @@ cat <<! >foo1
 40320
 362880
 !
-diff foo1 foo2 || echo 'BAD: T.func (factorial)'
+diff foo1 foo2 || error '(factorial)'
 
 $awk '
 function ack(m,n) {
@@ -117,7 +132,7 @@ cat <<! >foo1
 125 (10307 calls)
 253 (42438 calls)
 !
-diff foo1 foo2 || echo 'BAD: T.func (ackermann)'
+diff foo1 foo2 || error '(ackermann)'
 
 $awk '
 END { print "end" }
@@ -142,7 +157,7 @@ begin
 89
 end
 !
-diff foo1 foo2 || echo 'BAD: T.func (fib)'
+diff foo1 foo2 || error '(fib)'
 
 $awk '
 function foo() {
@@ -152,14 +167,14 @@ function foo() {
 }
 BEGIN { foo(); exit }
 ' >foo1
-grep 'should not' foo1 && echo 'BAD: T.func (return)'
+grep 'should not' foo1 && error '(return)'
 
 # this exercises multiple free of temp cells
 echo 'eqn
 eqn2' >foo1
-$awk 'BEGIN 	{ eprocess("eqn", "x", contig) 
+$awk 'BEGIN 	{ eprocess("eqn", "x", contig)
 	  process("tbl" )
-	  eprocess("eqn" "2", "x", contig) 
+	  eprocess("eqn" "2", "x", contig)
 	}
 function eprocess(file, first, contig) {
 	print file
@@ -167,12 +182,12 @@ function eprocess(file, first, contig) {
 function process(file) {
 	close(file)
 }' >foo2
-diff foo1 foo2 || echo 'BAD: T.func (eqn)'
+diff foo1 foo2 || error '(eqn)'
 
 echo 1 >foo1
 $awk 'function f() { n = 1; exit }
 	BEGIN { n = 0; f(); n = 2 }; END { print n}' >foo2
-diff foo1 foo2 || echo 'BAD: T.func (exit in function)'
+diff foo1 foo2 || error '(exit in function)'
 
 echo 1 >foo1
 $awk '
@@ -187,10 +202,12 @@ BEGIN {	n = 10
 	print (k == n^2)
       }
 ' >foo2
-diff foo1 foo2 || echo 'BAD: T.func (multi-dim subscript)'
+diff foo1 foo2 || error '(multi-dim subscript)'
 
 echo '<> 0' >foo1
 $awk '
 function foo() { i = 0 }
         BEGIN { x = foo(); printf "<%s> %d\n", x, x }' >foo2
-diff foo1 foo2 || echo 'BAD: T.func (fall off end)'
+diff foo1 foo2 || error '(fall off end)'
+
+exit $exit_code

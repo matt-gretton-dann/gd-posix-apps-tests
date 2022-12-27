@@ -1,24 +1,54 @@
-echo T.flags: test some commandline flags
+#!/bin/sh
+# Original script:
+# Copyright 1997 Lucent Technologies.  See LICENCE for licensing information.
+#
+# Modifications:
+# Copyright 2022 Matthew Gretton-Dann
+# Licence: SPDX Identifier: Apache-2.0
+
+testname="$(basename "$0")"
+exit_code=0
+error() {
+  echo "$testname: FAIL - $1"
+  exit_code=1
+}
+
+#echo T.flags: test some commandline flags
 
 awk=${awk-../a.out}
 
-$awk >foo 2>&1
-grep '[Uu]sage' foo >/dev/null || echo 'T.flags: bad usage'
+fail=0
+$awk >foo 2>&1 || fail=1
+grep '[Uu]sage' foo >/dev/null || error 'bad usage'
+test $fail = 1 || error 'bad usage - exit code'
 
-$awk -f >foo 2>&1
-grep 'no program' foo >/dev/null || echo 'T.flags: bad no program'
+fail=0
+$awk -f >foo 2>&1 || fail=1
+grep 'no program' foo >/dev/null || error 'bad no program'
+test $fail = 1 || error 'bad no program - exit code'
 
-$awk -f glop/glop >foo 2>&1
-grep 'can.t open' foo >/dev/null || echo 'T.flags: bad can.t open program'
+fail=0
+$awk -f glop/glop >foo 2>&1 || fail=1
+grep 'can.t open' foo >/dev/null || error 'bad can.t open program'
+test $fail = 1 || error "bad can't open program - exit code"
 
-$awk -fglop/glop >foo 2>&1
-grep 'can.t open' foo >/dev/null || echo 'T.flags: bad can.t open program 2'
+fail=0
+$awk -fglop/glop >foo 2>&1 || fail=1
+grep 'can.t open' foo >/dev/null || error 'bad can.t open program 2'
+test $fail = 1 || error "bad can't open program 2 - exit code"
 
-$awk -zz 'BEGIN{}' >foo 2>&1
-grep 'unknown option' foo >/dev/null || echo 'T.flags: bad unknown option'
+fail=0
+$awk -zz 'BEGIN{}' >foo 2>&1 || fail=1
+grep 'unknown option' foo >/dev/null || error 'bad unknown option'
+test $fail = 0 || error "bad unknown option - exit code"
 
-$awk -F  >foo 2>&1
-grep 'no field separator' foo >/dev/null || echo 'T.flags: bad missing field separator'
+fail=0
+$awk -F  >foo 2>&1 || fail=1
+grep 'no field separator' foo >/dev/null || error 'bad missing field separator'
+test $fail = 1 || error "bad missing field separator - exit code"
 
-$awk -F '' >foo 2>&1
-grep 'field separator FS is empty' foo >/dev/null || echo 'T.flags: bad empty field separator'
+#$awk -F '' 'BEGIN{}' >foo 2>&1 || fail=1
+#grep 'field separator FS is empty' foo >/dev/null || error 'bad empty field separator'
+#test $fail = 1 || error "bad empty field separator - exit code"
+
+exit $exit_code

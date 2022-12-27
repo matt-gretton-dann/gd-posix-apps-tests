@@ -1,11 +1,41 @@
-echo T.chem:  test chem.awk
+#!/bin/sh
+# Original script:
+# Copyright 1997 Lucent Technologies.  See LICENCE for licensing information.
+#
+# Modifications:
+# Copyright 2022 Matthew Gretton-Dann
+# Licence: SPDX Identifier: Apache-2.0
+run_dir="$(pwd)"
+cd "$(dirname "$0")"
+src_dir="$(pwd)"
+cd "${run_dir}"
+
+echo() {
+  if [ "X$1" = "X-n" ]
+  then
+      shift
+      printf "%s" "$*"
+  else
+      printf "%s\n" "$*"
+  fi
+}
+testname="$(basename "$0")"
+exit_code=0
+error() {
+  echo "$testname: FAIL - $1"
+  exit_code=1
+}
+
+#echo T.chem:  test chem.awk
 
 awk=${awk-../a.out}
 oldawk=${oldawk-awk}
+chem="$src_dir/chem.awk"
 
 for i in lsd1.p penicil.p res.p
 do
-	$awk -f chem.awk $i >foo1
-	$oldawk -f chem.awk $i >foo2
-	diff foo1 foo2 || echo "BAD: T.chem on $i"
+	$awk -f "$chem" "$src_dir/$i" >foo1
+	diff foo1 "$src_dir/$i.expected" || error "$i"
 done
+
+exit $exit_code

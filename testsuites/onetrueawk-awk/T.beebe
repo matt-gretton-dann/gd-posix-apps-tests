@@ -21,7 +21,7 @@ tar xf "$src_dir/beebe.tar"	# creates beebe
 cd beebe
 ec=1
 make all "AWK=$awk" | sed 's/^/	/' | grep -v cmp || ec=0
-if [ "$ec" -me 0 ]; then
+if [ "$ec" -ne 0 ]; then
   echo "$(basename "$0"): FAIL"
   exit 1
 else

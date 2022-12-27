@@ -1,3 +1,18 @@
+#!/bin/sh
+# Original script:
+# Copyright 1997 Lucent Technologies.  See LICENCE for licensing information.
+#
+# Modifications:
+# Copyright 2022 Matthew Gretton-Dann
+# Licence: SPDX Identifier: Apache-2.0
+
+testname="$(basename "$0")"
+exit_code=0
+error() {
+  echo "$testname: FAIL - $1"
+  exit_code=1
+}
+
 echo T.nextfile: tests of nextfile command
 
 awk=${awk-../a.out}
@@ -13,10 +28,10 @@ $awk '
 { print $0; nextfile }	# print first line, quit
 ' T.* >foo1
 
-diff foo0 foo1 || echo 'BAD: T.nextfile 1'
+diff foo0 foo1 || error '1'
 
 $awk '	# same test but in a for loop
-{ print $0; 
+{ print $0;
   for (i = 1; i < 10; i++)
 	if (i == 1)
 		nextfile
@@ -24,10 +39,10 @@ $awk '	# same test but in a for loop
 }	# print first line, quit
 ' T.* >foo1
 
-diff foo0 foo1 || echo 'BAD: T.nextfile 1f'
+diff foo0 foo1 || error '1f'
 
 $awk '	# same test but in a while loop
-{ print $0; 
+{ print $0;
   i = 1
   while (i < 10)
 	if (i++ == 1)
@@ -36,10 +51,10 @@ $awk '	# same test but in a while loop
 }	# print first line, quit
 ' T.* >foo1
 
-diff foo0 foo1 || echo 'BAD: T.nextfile 1w'
+diff foo0 foo1 || error '1w'
 
 $awk '	# same test but in a do loop
-{ print $0; 
+{ print $0;
   i = 1
   do {
 	if (i++ == 1)
@@ -49,7 +64,7 @@ $awk '	# same test but in a do loop
 }
 ' T.* >foo1
 
-diff foo0 foo1 || echo 'BAD: T.nextfile 1d'
+diff foo0 foo1 || error '1d'
 
 
 # 100 lines of some files
@@ -64,13 +79,13 @@ $awk '
 FNR == 100 { nextfile }	# print first line, quit
 ' T.* >foo1
 
-diff foo0 foo1 || echo 'BAD: T.nextfile 2'
+diff foo0 foo1 || error '2'
 
 
 >foo0	# empty
 $awk ' { nextfile; print $0 }' T.* >foo1
 
-diff foo0 foo1 || echo 'BAD: T.nextfile 3'
+diff foo0 foo1 || error '3'
 
 # skip weird args
 rm -f foo0
@@ -83,4 +98,6 @@ $awk '
 { print $0; nextfile }	# print first line, quit
 ' T.* >foo1
 
-diff foo0 foo1 || echo 'BAD: T.nextfile 4'
+diff foo0 foo1 || error '4'
+
+exit $exit_code

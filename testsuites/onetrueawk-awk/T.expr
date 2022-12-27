@@ -45,7 +45,7 @@ $1 ~ /try/ {	# new test
 	tt += nt2
 }
 END { print tt, "tests" }
-' <<\!!!!
+' >foo1 <<\!!!!
 # General format:
 # try program as rest of line
 # $1	$2	$3	output1  (\t for tab, \n for newline,
@@ -82,7 +82,7 @@ x	y	2
 x		2
 
 try { print NF, $NF }
-	0 
+	0
 x	1 x
 x	y	2 y
 x	yy	zzz	3 zzz
@@ -120,7 +120,7 @@ try { print !$1 + $2 }
 
 # the definition of "number" changes with isnumber.
 # 2e100 is ok according to strtod.
-# try 1 
+# try 1
 
 try { print ($1 == $2) }
 0	0	1
@@ -233,3 +233,12 @@ try { f[1]=1; f[2]=2; print $f[1], $f[1]++, $f[2], f[1], f[2] }
 
 
 !!!!
+
+if grep -q 'failed' foo1; then
+  cat foo1
+  echo "T.expr: FAIL"
+  exit 1
+else
+  echo "T.expr: PASS"
+  exit 0
+fi
