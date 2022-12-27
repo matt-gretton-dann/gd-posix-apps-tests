@@ -38,6 +38,7 @@
 
 # Build directories:
 build*/
+tests/
 
 # Python
 __pycache__/

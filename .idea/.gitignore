@@ -89,3 +89,4 @@ fabric.properties
 gd-posix-apps-tests.iml
 modules.xml
 vcs.xml
+encodings.xml
