@@ -35,6 +35,7 @@ do
   fi
   if [ "$expected_ec" -ne "$ec" ]; then
     echo "$i: FAIL - exit code"
+    exit_code=1
   fi
   if cmp -s "$i.expected" "$run_dir/$i.output"; then
     rm "$run_dir/$i.output"

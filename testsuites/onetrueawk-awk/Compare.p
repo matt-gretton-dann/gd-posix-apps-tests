@@ -20,19 +20,23 @@ awk="$1"
 shift
 
 exit_code=0
+
+error() {
+  exit_code=1
+  echo "FAIL: $*" >& 2
+}
+
 while [ $# -ge 1 ];
 do
   i="$1"
   shift
-  $awk -f "$i" "test.countries" "test.countries" >"$run_dir/$i.output"
+  $awk -f "$i" "test.countries" "test.countries" >"$run_dir/$i.output" || error "$i - awk"
   if cmp -s "$i.expected" "$run_dir/$i.output"; then
     rm "$run_dir/$i.output"
   else
-    echo "$i: FAIL"
+    error "$i"
     diff -b "$i.expected" "$run_dir/$i.output" | sed -e 's/^/	/' -e 10q
-    exit_code=1
   fi
 done
 
-cd "$src_dir"
 exit $exit_code
