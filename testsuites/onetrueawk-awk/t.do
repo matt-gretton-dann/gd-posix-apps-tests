@@ -12,3 +12,4 @@ NF > 0 {
 	if (s != t)
 		print "bad at", NR
 }
+END { print "Finished" }

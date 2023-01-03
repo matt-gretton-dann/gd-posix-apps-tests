@@ -3,3 +3,4 @@
 /#/	{ print "this one has a # in it: " $0	# comment
 	print "again:" $0
 	}
+END { print "Finished" }

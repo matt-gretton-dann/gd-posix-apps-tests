@@ -5,3 +5,4 @@
   delete x["abc"]
   delete x[$1]
 }
+END { print "Finished" }

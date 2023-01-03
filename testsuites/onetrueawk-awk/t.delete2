@@ -10,3 +10,4 @@ NR < 50 { n = split($0, x)
   if (k != int(n^2-n))
 	printf "delete2 miscount %d vs %d at %d\n", k, n^2-n, NR
 }
+END { print "Finished" }

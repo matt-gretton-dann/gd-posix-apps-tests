@@ -6,6 +6,11 @@
 # Copyright 2022 Matthew Gretton-Dann
 # Licence: SPDX Identifier: Apache-2.0
 
+run_dir="$(pwd)"
+cd "$(dirname "$0")"
+src_dir="$(pwd)"
+cd "${run_dir}"
+
 testname="$(basename "$0")"
 exit_code=0
 error() {
@@ -19,14 +24,14 @@ awk=${awk-../a.out}
 
 # 1st lines of some files
 rm -f foo0
-for i in T.*
+for i in "$src_dir"/T.*
 do
 	sed 1q $i >>foo0
 done
 
 $awk '
 { print $0; nextfile }	# print first line, quit
-' T.* >foo1
+' "$src_dir"/T.* >foo1 || error "awk 1"
 
 diff foo0 foo1 || error '1'
 
@@ -37,7 +42,7 @@ $awk '	# same test but in a for loop
 		nextfile
   print "nextfile for error"
 }	# print first line, quit
-' T.* >foo1
+' "$src_dir/"T.* >foo1 || error "awk 1f"
 
 diff foo0 foo1 || error '1f'
 
@@ -49,7 +54,7 @@ $awk '	# same test but in a while loop
 		nextfile
   print "nextfile while error"
 }	# print first line, quit
-' T.* >foo1
+' "$src_dir/"T.* >foo1 || error "awk 1w"
 
 diff foo0 foo1 || error '1w'
 
@@ -62,14 +67,14 @@ $awk '	# same test but in a do loop
   } while (i < 10)
   print "nextfile do error"
 }
-' T.* >foo1
+' "$src_dir/"T.* >foo1 || error "awk 1d"
 
 diff foo0 foo1 || error '1d'
 
 
 # 100 lines of some files
 rm -f foo0
-for i in T.*
+for i in "$src_dir/"T.*
 do
 	sed 100q $i >>foo0
 done
@@ -77,26 +82,26 @@ done
 $awk '
 { print }
 FNR == 100 { nextfile }	# print first line, quit
-' T.* >foo1
+' "$src_dir/"T.* >foo1 || error "awk 2"
 
 diff foo0 foo1 || error '2'
 
 
 >foo0	# empty
-$awk ' { nextfile; print $0 }' T.* >foo1
+$awk ' { nextfile; print $0 }' "$src_dir/"T.* >foo1 || error "awk 3"
 
 diff foo0 foo1 || error '3'
 
 # skip weird args
 rm -f foo0
-for i in T.*
+for i in "$src_dir/"T.*
 do
 	sed 1q $i >>foo0
 done
 
 $awk '
 { print $0; nextfile }	# print first line, quit
-' T.* >foo1
+' "$src_dir/"T.* >foo1 || error "4"
 
 diff foo0 foo1 || error '4'
 

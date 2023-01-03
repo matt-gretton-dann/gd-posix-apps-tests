@@ -7,3 +7,4 @@ BEGIN { FS = "a" }
 		if ($i != x[i])
 			print "diff at ", i, x[i], $i
 }
+END { print "Finished" }

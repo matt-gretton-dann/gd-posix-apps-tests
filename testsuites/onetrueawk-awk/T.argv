@@ -27,7 +27,7 @@ BEGIN {
 		printf "%s", ARGV[i]
 	printf "\n"
 	exit
-}' * >foo1
+}' * >foo1 || error '(echo1 * awk)'
 echo * >foo2
 diff foo1 foo2 || error '(echo1 *)'
 
@@ -40,7 +40,7 @@ BEGIN {
 	}
 	printf "\n"
 	exit
-}' * >foo1
+}' * >foo1 || error '(echo2 * awk)'
 echo * >foo2
 diff foo1 foo2 || error '(echo2 *)'
 
@@ -52,7 +52,7 @@ BEGIN {
 		print ARGV[i]
 	exit
 }
-' a bc def gh >foo1
+' a bc def gh >foo1 || error '(argc * awk)'
 echo "5
 $awk
 a
@@ -67,7 +67,7 @@ echo '1
 echo 'foo1
 foo2
 foo3' >foo1
-$awk '{print L $0}' L=foo <foo0 >foo2
+$awk '{print L $0}' L=foo <foo0 >foo2 || error '(L=foo awk)'
 diff foo1 foo2 || error '(L=foo <foo1)'
 
 echo '1
@@ -76,7 +76,7 @@ echo '1
 echo 'foo1
 foo2
 foo3' >foo1
-$awk '{print L $0}' L=foo foo0 >foo2
+$awk '{print L $0}' L=foo foo0 >foo2 || error '(L=foo foo0 awk)'
 diff foo1 foo2 || error '(L=foo foo1)'
 
 echo '1
@@ -85,7 +85,7 @@ echo '1
 echo 'foo1
 foo2
 foo3' >foo1
-cat foo0 | $awk '{print L $0}' L=foo - >foo2
+cat foo0 | $awk '{print L $0}' L=foo - >foo2 || error '(L=foo - awk)'
 diff foo1 foo2 || error '(L=foo -)'
 
 echo '1
@@ -97,7 +97,7 @@ foo3
 glop1
 glop2
 glop3' >foo1
-$awk '{print L $0}' L=foo foo0 L=glop foo0 >foo2
+$awk '{print L $0}' L=foo foo0 L=glop foo0 >foo2 || error '(L=foo L=glop awk)'
 diff foo1 foo2 || error '(L=foo L=glop)'
 
 echo '1
@@ -109,21 +109,21 @@ echo '111
 221
 222
 223' >foo1
-$awk '{print L $0}' L=11 foo0 L=22 foo0 >foo2
+$awk '{print L $0}' L=11 foo0 L=22 foo0 >foo2 || error '(L=11 L=22 awk)'
 diff foo1 foo2 || error '(L=11 L=22)'
 
 echo >foo0
 echo 'name=value
 name=value' >foo1
-$awk 'BEGIN { print ARGV[1] } { print ARGV[1] }' name=value foo0 >foo2
+$awk 'BEGIN { print ARGV[1] } { print ARGV[1] }' name=value foo0 >foo2 || error '(assignment operand modified awk)'
 diff foo1 foo2 || error 'assignment operand modified'
 
 echo 3.345 >foo1
-$awk 'BEGIN { print ARGV[1] + ARGV[2]}' 1 2.345 >foo2
+$awk 'BEGIN { print ARGV[1] + ARGV[2]}' 1 2.345 >foo2  || error '(ARGV[1] + ARGV[2] awk)'
 diff foo1 foo2 || error '(ARGV[1] + ARGV[2])'
 
 echo 3.345 >foo1
-x1=1 x2=2.345 $awk 'BEGIN { print ENVIRON["x1"] + ENVIRON["x2"]}' 1 2.345 >foo2
+x1=1 x2=2.345 $awk 'BEGIN { print ENVIRON["x1"] + ENVIRON["x2"]}' 1 2.345 >foo2 || error '(ENVIRON[x1] + ENVIRON[x2] awk)'
 diff foo1 foo2 || error '(ENVIRON[x1] + ENVIRON[x2])'
 
 
@@ -131,14 +131,14 @@ echo 'foo1' >foo1
 echo 'foo2' >foo2
 echo 'foo3' >foo3
 $awk 'BEGIN { ARGV[2] = "" }
-	{ print }' foo1 foo2 foo3 >foo4
+	{ print }' foo1 foo2 foo3 >foo4 || error '(zap ARGV[2] awk)'
 echo 'foo1
 foo3' >foo5
 diff foo4 foo5 || error 'zap ARGV[2]'
 
 echo hi > foo1 ; mv foo1 foo2
 $awk 'BEGIN { ARGV[1] = "foo2" ; print FILENAME }
-             { print FILENAME }' foo1 >foo3
+             { print FILENAME }' foo1 >foo3 || error '(startup FILENAME awk)'
 echo '
 foo2' >foo4
 diff foo3 foo4 || error 'startup FILENAME'
@@ -161,7 +161,7 @@ $awk 'BEGIN {   # this is a variant of arnolds original example
 END {
         for (i in ARGV)
                 printf("ARGV[%d] is %s\n", i, ARGV[i])
-}' >foo2
+}' >foo2 || error '(delete ARGV[2] awk)'
 diff foo1 foo2 || error 'delete ARGV[2]'
 
 exit $exit_code

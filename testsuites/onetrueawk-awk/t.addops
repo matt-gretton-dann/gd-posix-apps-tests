@@ -22,3 +22,4 @@
 	sq = sprintf("%.10g", NR * sqrt(NR))
 	if (ns != sq) print NR,  "urk2 ^=", ns, sq
 }
+END { print "Finished" }

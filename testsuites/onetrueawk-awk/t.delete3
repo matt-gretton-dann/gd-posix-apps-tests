@@ -5,3 +5,4 @@
   if (n != 0)
 	print "error", n, "at", NR
 }
+END { print "Finished" }

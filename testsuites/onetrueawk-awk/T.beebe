@@ -19,10 +19,17 @@ cd "${run_dir}"
 rm -rf beebe
 tar xf "$src_dir/beebe.tar"	# creates beebe
 cd beebe
-ec=1
-make all "AWK=$awk" | sed 's/^/	/' | grep -v cmp || ec=0
+ec=0
+make all "AWK=$awk" >foo.beebe || ec=1
 if [ "$ec" -ne 0 ]; then
-  echo "$(basename "$0"): FAIL"
+  echo "$(basename "$0"): FAIL - make all"
+  exit 1
+fi
+
+ec=1
+cat foo.beebe | sed 's/^/	/' | grep -v cmp || ec=0
+if [ "$ec" -ne 0 ]; then
+  echo "$(basename "$0"): FAIL - output"
   exit 1
 else
   echo "$(basename "$0"): PASS"
