@@ -35,7 +35,7 @@ do
     rm "$run_dir/$i.output"
   else
     error "$i"
-    diff -b "$i.expected" "$run_dir/$i.output" | sed -e 's/^/	/' -e 10q
+    diff -bup "$i.expected" "$run_dir/$i.output" | sed -e 's/^/	/' -e 10q
   fi
 done
 
