@@ -7,39 +7,50 @@
 # Licence: SPDX Identifier: Apache-2.0
 
 testname="$(basename "$0")"
+run_dir="$(pwd)"
+cd "$(dirname "$0")" || exit 1
+src_dir="$(pwd)"
+cd "${run_dir}" || exit 1
+
 exit_code=0
 error() {
   echo "$testname: FAIL - $1"
   exit_code=1
 }
 
-echo T.lilly: miscellaneous RE tests from Bruce Lilly
-
 awk=${awk-../a.out}
+foo1="${run_dir}/${testname}.output.1"
+foo2="${run_dir}/${testname}.output.2"
+glop1="${run_dir}/${testname}.output.1a"
+glop2="${run_dir}/${testname}.output.2a"
+foo="${run_dir}/${testname}.output"
+lilly_ifile="${src_dir}/lilly.ifile"
+lilly_diff="${run_dir}/${testname}.diff"
 
-rm -f foo
+rm -f "${foo}"
 awk '
 /./ {
-	print $0 >"foo"
-	close("foo")
+	print $0 >"'"${foo}"'"
+	close("'"${foo}"'")
 	print "###", NR, $0
-	system("awk -f foo <\"lilly.ifile\" ")
-}' <lilly.progs >foo1 2>&1
+	system("awk -f '"${foo}"' <\"'"${lilly_ifile}"'\" ")
+}' <"${src_dir}/lilly.progs" >"${foo1}" 2>&1
 
-rm -f foo
+rm -f "${foo}"
 $awk '
 /./ {
-	print $0 >"foo"
-	close("foo")
+	print $0 >"'"${foo}"'"
+	close("'"${foo}"'")
 	print "###", NR, $0
-	system("../a.out -f foo <\"lilly.ifile\" ")
-}' <lilly.progs >foo2 2>&1
+	system("../a.out -f '"${foo}"' <\"'"${lilly_ifile}"'\" ")
+}' <"${src_dir}/lilly.progs" >"${foo2}" 2>&1
 
-echo `cat lilly.progs | wc -l` tests
+echo `cat "${src_dir}/lilly.progs" | wc -l` tests
 
-sed -e 's/awk://' -e 's/Syntax/syntax/' -e '/warning:/d' foo1 >glop1
-sed 's/..\/a.out://' foo2 >glop2
-diff glop1 glop2 >lilly.diff || error 'is different'
+sed -e 's/awk://' -e 's/Syntax/syntax/' -e '/warning:/d' "${foo1}" >"${glop1}"
+sed 's/..\/a.out://' "${foo2}" >"${glop2}"
+diff "${glop1}" "${glop2}" >"${lilly_diff}" || error 'is different'
 echo
 
+rm -f "${foo1}" "${foo2}" "${foo}" "${glop1}" "${glop2}" "${lilly_diff}"
 exit $exit_code

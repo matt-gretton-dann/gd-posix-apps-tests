@@ -18,8 +18,8 @@ ec=0
 for i in "$src_dir/arnold-fixes/"*.awk
 do
   name="$(basename $i .awk)"
-  "$awk" -f "$src_dir/arnold-fixes/$name.awk" >foo.$name
-  if diff "$src_dir/arnold-fixes/$name.ok" "foo.$name"; then
+  "$awk" -f "$src_dir/arnold-fixes/$name.awk" >"${run_dir}/$name.foo"
+  if diff "$src_dir/arnold-fixes/$name.ok" "${run_dir}/$name.foo"; then
     echo "$(basename "$0"): PASS - $name"
   else
     echo "$(basename "$0"): FAIL - $name"

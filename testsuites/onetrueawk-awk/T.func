@@ -7,6 +7,11 @@
 # Licence: SPDX Identifier: Apache-2.0
 
 testname="$(basename "$0")"
+run_dir="$(pwd)"
+cd "$(dirname "$0")" || exit 1
+src_dir="$(pwd)"
+cd "${run_dir}" || exit 1
+
 exit_code=0
 error() {
   echo "$testname: FAIL - $1"
@@ -16,6 +21,8 @@ error() {
 #echo T.func: test user-defined functions
 
 awk=${awk-../a.out}
+foo1="${run_dir}/${testname}.output.1"
+foo2="${run_dir}/${testname}.output.2"
 
 echo '10 2
 2 10
@@ -31,30 +38,33 @@ function assert(cond) { # assertion
 function i(x) { return x }
 
 { m=$1; n=i($2); assert(m>n) }
-' >foo1
+' >"${foo1}"
 echo '1
 0
 0
 0
-1' >foo2
-diff foo1 foo2 || error '(function return type)'
+1' >"${foo2}"
+diff "${foo1}" "${foo2}" || error '(function return type)'
+rm -f "${foo1}" "${foo2}"
 
-echo 'data: data' >foo1
+echo 'data: data' >"${foo1}"
 $awk '
 function test1(array) { array["test"] = "data" }
 function test2(array) { return(array["test"]) }
 BEGIN { test1(foo); print "data: " test2(foo) }
-' >foo2
-diff foo1 foo2 || error '(array type)'
+' >"${foo2}"
+diff "${foo1}" "${foo2}" || error '(array type)'
+rm -f "${foo1}" "${foo2}"
 
 $awk '
 BEGIN	{ code() }
 END	{ codeout("x") }
 function code() { ; }
 function codeout(ex) { print ex }
-' /dev/null >foo1
-echo x >foo2
-diff foo1 foo2 || error '(argument passing)'
+' /dev/null >"${foo1}"
+echo x >"${foo2}"
+diff "${foo1}" "${foo2}" || error '(argument passing)'
+rm -f "${foo1}" "${foo2}"
 
 $awk '
 BEGIN { unireghf() }
@@ -69,10 +79,11 @@ function unireghf(hfeed) {
 function rcell(cellname,hfeed) {
 	print cellname
 }
-' >foo1
+' >"${foo1}"
 echo "foo
-bar" >foo2
-diff foo1 foo2 || error '(convert arg to array)'
+bar" >"${foo2}"
+diff "${foo1}" "${foo2}" || error '(convert arg to array)'
+rm -f "${foo1}" "${foo2}"
 
 $awk '
 function f(n) {
@@ -82,7 +93,7 @@ function f(n) {
 		return n * f(n-1)
 }
 { print f($1) }
-' <<! >foo2
+' <<! >"${foo2}"
 0
 1
 2
@@ -94,7 +105,7 @@ function f(n) {
 8
 9
 !
-cat <<! >foo1
+cat <<! >"${foo1}"
 1
 1
 2
@@ -106,7 +117,8 @@ cat <<! >foo1
 40320
 362880
 !
-diff foo1 foo2 || error '(factorial)'
+diff "${foo1}" "${foo2}" || error '(factorial)'
+rm -f "${foo1}" "${foo2}"
 
 $awk '
 function ack(m,n) {
@@ -116,7 +128,7 @@ function ack(m,n) {
 	return ack(m-1, ack(m, n-1))
 }
 { k = 0; print ack($1,$2), "(" k " calls)" }
-' <<! >foo2
+' <<! >"${foo2}"
 0 0
 1 1
 2 2
@@ -124,7 +136,7 @@ function ack(m,n) {
 3 4
 3 5
 !
-cat <<! >foo1
+cat <<! >"${foo1}"
 1 (1 calls)
 3 (4 calls)
 7 (27 calls)
@@ -132,7 +144,8 @@ cat <<! >foo1
 125 (10307 calls)
 253 (42438 calls)
 !
-diff foo1 foo2 || error '(ackermann)'
+diff "${foo1}" "${foo2}" || error '(ackermann)'
+rm -f "${foo1}" "${foo2}"
 
 $awk '
 END { print "end" }
@@ -143,13 +156,13 @@ function fib(n) {
 }
 function add(m,n) { return m+n }
 BEGIN { print "begin" }
-' <<! >foo2
+' <<! >"${foo2}"
 1
 3
 5
 10
 !
-cat <<! >foo1
+cat <<! >"${foo1}"
 begin
 1
 3
@@ -157,7 +170,8 @@ begin
 89
 end
 !
-diff foo1 foo2 || error '(fib)'
+diff "${foo1}" "${foo2}" || error '(fib)'
+rm -f "${foo1}" "${foo2}"
 
 $awk '
 function foo() {
@@ -166,12 +180,13 @@ function foo() {
 	print "should not see this"
 }
 BEGIN { foo(); exit }
-' >foo1
-grep 'should not' foo1 && error '(return)'
+' >"${foo1}"
+grep 'should not' "${foo1}" && error '(return)'
+rm -f "${foo1}"
 
 # this exercises multiple free of temp cells
 echo 'eqn
-eqn2' >foo1
+eqn2' >"${foo1}"
 $awk 'BEGIN 	{ eprocess("eqn", "x", contig)
 	  process("tbl" )
 	  eprocess("eqn" "2", "x", contig)
@@ -181,15 +196,18 @@ function eprocess(file, first, contig) {
 }
 function process(file) {
 	close(file)
-}' >foo2
-diff foo1 foo2 || error '(eqn)'
+}' >"${foo2}"
+diff "${foo1}" "${foo2}" || error '(eqn)'
+rm -f "${foo1}" "${foo2}"
 
-echo 1 >foo1
+
+echo 1 >"${foo1}"
 $awk 'function f() { n = 1; exit }
-	BEGIN { n = 0; f(); n = 2 }; END { print n}' >foo2
-diff foo1 foo2 || error '(exit in function)'
+	BEGIN { n = 0; f(); n = 2 }; END { print n}' >"${foo2}"
+diff "${foo1}" "${foo2}" || error '(exit in function)'
+rm -f "${foo1}" "${foo2}"
 
-echo 1 >foo1
+echo 1 >"${foo1}"
 $awk '
 BEGIN {	n = 10
 	for (i = 1; i <= n; i++)
@@ -201,13 +219,15 @@ BEGIN {	n = 10
 			k++
 	print (k == n^2)
       }
-' >foo2
-diff foo1 foo2 || error '(multi-dim subscript)'
+' >"${foo2}"
+diff "${foo1}" "${foo2}" || error '(multi-dim subscript)'
+rm -f "${foo1}" "${foo2}"
 
-echo '<> 0' >foo1
+echo '<> 0' >"${foo1}"
 $awk '
 function foo() { i = 0 }
-        BEGIN { x = foo(); printf "<%s> %d\n", x, x }' >foo2
-diff foo1 foo2 || error '(fall off end)'
+        BEGIN { x = foo(); printf "<%s> %d\n", x, x }' >"${foo2}"
+diff "${foo1}" "${foo2}" || error '(fall off end)'
+rm -f "${foo1}" "${foo2}"
 
 exit $exit_code

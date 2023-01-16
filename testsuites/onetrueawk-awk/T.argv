@@ -12,13 +12,24 @@ error() {
   echo "$testname: FAIL - $1"
   exit_code=1
 }
+run_dir="$(pwd)"
+cd "$(dirname "$0")"
+src_dir="$(pwd)"
+cd "${run_dir}"
+
+foo0="${run_dir}/T.argv.output.0"
+foo1="${run_dir}/T.argv.output.1"
+foo2="${run_dir}/T.argv.output.2"
+foo3="${run_dir}/T.argv.output.3"
+foo4="${run_dir}/T.argv.output.4"
+foo5="${run_dir}/T.argv.output.5"
 
 #echo T.argv: misc tests of argc and argv
 
 awk=${awk-../a.out}
 
-echo >foo1
-echo >foo2
+echo >"${foo1}"
+echo >"${foo2}"
 $awk '
 BEGIN {
 	for (i = 1; i < ARGC-1; i++)
@@ -27,9 +38,10 @@ BEGIN {
 		printf "%s", ARGV[i]
 	printf "\n"
 	exit
-}' * >foo1 || error '(echo1 * awk)'
-echo * >foo2
-diff foo1 foo2 || error '(echo1 *)'
+}' "${src_dir}/"* >"${foo1}" || error '(echo1 * awk)'
+echo "${src_dir}/"* >"${foo2}"
+diff "${foo1}" "${foo2}" || error '(echo1 *)'
+rm -f "${foo1}" "${foo2}"
 
 $awk '
 BEGIN {
@@ -40,9 +52,10 @@ BEGIN {
 	}
 	printf "\n"
 	exit
-}' * >foo1 || error '(echo2 * awk)'
-echo * >foo2
-diff foo1 foo2 || error '(echo2 *)'
+}' "${src_dir}/"* >"${foo1}" || error '(echo2 * awk)'
+echo "${src_dir}/"* >"${foo2}"
+diff "${foo1}" "${foo2}" || error '(echo2 *)'
+rm -f "${foo1}" "${foo2}"
 
 $awk '
 BEGIN {
@@ -52,103 +65,114 @@ BEGIN {
 		print ARGV[i]
 	exit
 }
-' a bc def gh >foo1 || error '(argc * awk)'
+' a bc def gh >"${foo1}" || error '(argc * awk)'
 echo "5
 $awk
 a
 bc
 def
-" >foo2
-diff foo1 foo2 || error '(argc *)'
+" >"${foo2}"
+diff "${foo1}" "${foo2}" || error '(argc *)'
+rm -f "${foo1}" "${foo2}"
 
 echo '1
 2
-3' >foo0
+3' >"${foo0}"
 echo 'foo1
 foo2
-foo3' >foo1
-$awk '{print L $0}' L=foo <foo0 >foo2 || error '(L=foo awk)'
-diff foo1 foo2 || error '(L=foo <foo1)'
+foo3' >"${foo1}"
+$awk '{print L $0}' L=foo <"${foo0}" >"${foo2}" || error '(L=foo awk)'
+diff "${foo1}" "${foo2}" || error '(L=foo <foo1)'
+rm -f "${foo0}" "${foo1}" "${foo2}"
 
 echo '1
 2
-3' >foo0
+3' >"${foo0}"
 echo 'foo1
 foo2
-foo3' >foo1
-$awk '{print L $0}' L=foo foo0 >foo2 || error '(L=foo foo0 awk)'
-diff foo1 foo2 || error '(L=foo foo1)'
+foo3' >"${foo1}"
+$awk '{print L $0}' L=foo "${foo0}" >"${foo2}" || error '(L=foo foo0 awk)'
+diff "${foo1}" "${foo2}" || error '(L=foo foo1)'
+rm -f "${foo0}" "${foo1}" "${foo2}"
 
 echo '1
 2
-3' >foo0
+3' >"${foo0}"
 echo 'foo1
 foo2
-foo3' >foo1
-cat foo0 | $awk '{print L $0}' L=foo - >foo2 || error '(L=foo - awk)'
-diff foo1 foo2 || error '(L=foo -)'
+foo3' >"${foo1}"
+cat "${foo0}" | $awk '{print L $0}' L=foo - >"${foo2}" || error '(L=foo - awk)'
+diff "${foo1}" "${foo2}" || error '(L=foo -)'
+rm -f "${foo0}" "${foo1}" "${foo2}"
 
 echo '1
 2
-3' >foo0
+3' >"${foo0}"
 echo 'foo1
 foo2
 foo3
 glop1
 glop2
-glop3' >foo1
-$awk '{print L $0}' L=foo foo0 L=glop foo0 >foo2 || error '(L=foo L=glop awk)'
-diff foo1 foo2 || error '(L=foo L=glop)'
+glop3' >"${foo1}"
+$awk '{print L $0}' L=foo "${foo0}" L=glop "${foo0}" >"${foo2}" || error '(L=foo L=glop awk)'
+diff "${foo1}" "${foo2}" || error '(L=foo L=glop)'
+rm -f "${foo0}" "${foo1}" "${foo2}"
 
 echo '1
 2
-3' >foo0
+3' >"${foo0}"
 echo '111
 112
 113
 221
 222
-223' >foo1
-$awk '{print L $0}' L=11 foo0 L=22 foo0 >foo2 || error '(L=11 L=22 awk)'
-diff foo1 foo2 || error '(L=11 L=22)'
+223' >"${foo1}"
+$awk '{print L $0}' L=11 "${foo0}" L=22 "${foo0}" >"${foo2}" || error '(L=11 L=22 awk)'
+diff "${foo1}" "${foo2}" || error '(L=11 L=22)'
+rm -f "${foo0}" "${foo1}" "${foo2}"
 
-echo >foo0
+echo >"${foo0}"
 echo 'name=value
-name=value' >foo1
-$awk 'BEGIN { print ARGV[1] } { print ARGV[1] }' name=value foo0 >foo2 || error '(assignment operand modified awk)'
-diff foo1 foo2 || error 'assignment operand modified'
+name=value' >"${foo1}"
+$awk 'BEGIN { print ARGV[1] } { print ARGV[1] }' name=value "${foo0}" >"${foo2}" || error '(assignment operand modified awk)'
+diff "${foo1}" "${foo2}" || error 'assignment operand modified'
+rm -f "${foo0}" "${foo1}" "${foo2}"
 
-echo 3.345 >foo1
-$awk 'BEGIN { print ARGV[1] + ARGV[2]}' 1 2.345 >foo2  || error '(ARGV[1] + ARGV[2] awk)'
-diff foo1 foo2 || error '(ARGV[1] + ARGV[2])'
+echo 3.345 >"${foo1}"
+$awk 'BEGIN { print ARGV[1] + ARGV[2]}' 1 2.345 >"${foo2}"  || error '(ARGV[1] + ARGV[2] awk)'
+diff "${foo1}" "${foo2}" || error '(ARGV[1] + ARGV[2])'
+rm -f "${foo1}" "${foo2}"
 
-echo 3.345 >foo1
-x1=1 x2=2.345 $awk 'BEGIN { print ENVIRON["x1"] + ENVIRON["x2"]}' 1 2.345 >foo2 || error '(ENVIRON[x1] + ENVIRON[x2] awk)'
-diff foo1 foo2 || error '(ENVIRON[x1] + ENVIRON[x2])'
+echo 3.345 >"${foo1}"
+x1=1 x2=2.345 $awk 'BEGIN { print ENVIRON["x1"] + ENVIRON["x2"]}' 1 2.345 >"${foo2}" || error '(ENVIRON[x1] + ENVIRON[x2] awk)'
+diff "${foo1}" "${foo2}" || error '(ENVIRON[x1] + ENVIRON[x2])'
+rm -f "${foo1}" "${foo2}"
 
-
-echo 'foo1' >foo1
-echo 'foo2' >foo2
-echo 'foo3' >foo3
+echo 'foo1' >"${foo1}"
+echo 'foo2' >"${foo2}"
+echo 'foo3' >"${foo3}"
 $awk 'BEGIN { ARGV[2] = "" }
-	{ print }' foo1 foo2 foo3 >foo4 || error '(zap ARGV[2] awk)'
+	{ print }' "${foo1}" "${foo2}" "${foo3}" >"${foo4}" || error '(zap ARGV[2] awk)'
 echo 'foo1
-foo3' >foo5
-diff foo4 foo5 || error 'zap ARGV[2]'
+foo3' >"${foo5}"
+diff "${foo4}" "${foo5}" || error 'zap ARGV[2]'
+rm -f "${foo1}" "${foo2}" "${foo3}" "${foo4}" "${foo5}"
 
-echo hi > foo1 ; mv foo1 foo2
-$awk 'BEGIN { ARGV[1] = "foo2" ; print FILENAME }
-             { print FILENAME }' foo1 >foo3 || error '(startup FILENAME awk)'
-echo '
-foo2' >foo4
-diff foo3 foo4 || error 'startup FILENAME'
+echo hi > "${foo1}" ; mv "${foo1}" "${foo2}"
+$awk "BEGIN { ARGV[1] = \"${foo2}\" ; print FILENAME }
+             { print FILENAME }" "${foo1}" >"${foo3}" || error '(startup FILENAME awk)'
+echo "
+${foo2}" >"${foo4}"
+diff "${foo3}" "${foo4}" || error 'startup FILENAME'
 	# assumes that startup FILENAME is ""
+rm -f "${foo1}" "${foo2}" "${foo3}" "${foo4}"
 
 
 # test data balanced on pinhead...
 echo "ARGV[3] is /dev/null
 ARGV[0] is $awk
-ARGV[1] is /dev/null" >foo1
+ARGV[1] is /dev/null" >"${foo0}"
+sort "${foo0}" > "${foo1}"
 
 $awk 'BEGIN {   # this is a variant of arnolds original example
         ARGV[1] = "/dev/null"
@@ -161,7 +185,9 @@ $awk 'BEGIN {   # this is a variant of arnolds original example
 END {
         for (i in ARGV)
                 printf("ARGV[%d] is %s\n", i, ARGV[i])
-}' >foo2 || error '(delete ARGV[2] awk)'
-diff foo1 foo2 || error 'delete ARGV[2]'
+}' >"${foo3}" || error '(delete ARGV[2] awk)'
+sort "${foo3}" > "${foo2}"
+diff "${foo1}" "${foo2}" || error 'delete ARGV[2]'
+rm -f "${foo0}" "${foo1}" "${foo2}" "${foo3}"
 
 exit $exit_code

@@ -18,9 +18,8 @@ cd "${run_dir}"
 
 rm -rf beebe
 tar xf "$src_dir/beebe.tar"	# creates beebe
-cd beebe
 ec=0
-make all "AWK=$awk" >foo.beebe || ec=1
+make -C beebe all "AWK=$awk" >foo.beebe || ec=1
 if [ "$ec" -ne 0 ]; then
   echo "$(basename "$0"): FAIL - make all"
   exit 1
@@ -32,5 +31,6 @@ if [ "$ec" -ne 0 ]; then
   echo "$(basename "$0"): FAIL - output"
   exit 1
 else
+  rm -rf beebe
   echo "$(basename "$0"): PASS"
 fi

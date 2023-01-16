@@ -7,49 +7,56 @@
 # Licence: SPDX Identifier: Apache-2.0
 
 testname="$(basename "$0")"
+run_dir="$(pwd)"
+cd "$(dirname "$0")" || exit 1
+src_dir="$(pwd)"
+cd "${run_dir}" || exit 1
+
 exit_code=0
 error() {
   echo "$testname: FAIL - $1"
   exit_code=1
 }
 
-echo T.redir: test redirections
 
 awk=${awk-../a.out}
+foo="${run_dir}/${testname}.output"
+foo1="${run_dir}/${testname}.output.1"
+foo2="${run_dir}/${testname}.output.2"
 
-$awk '{ print >"foo" }' /etc/passwd
-diff foo /etc/passwd || error '(print >"foo")'
+$awk '{ print >"'"${foo}"'" }' /etc/passwd
+diff "${foo}" /etc/passwd || error '(print >"'"${foo}"'")'
 
-rm -f foo
-$awk '{ print >>"foo" }' /etc/passwd
-diff foo /etc/passwd || error '(print >>"foo")'
+rm -f "${foo}"
+$awk '{ print >>"'"${foo}"'" }' /etc/passwd
+diff "${foo}" /etc/passwd || error '(print >>"'"${foo}"'")'
 
-rm -f foo
-$awk 'NR%2 == 1 { print >>"foo" }
-      NR%2 == 0 { print >"foo" }' /etc/passwd
-diff foo /etc/passwd || error '(print > and >>"foo")'
+rm -f "${foo}"
+$awk 'NR%2 == 1 { print >>"'"${foo}"'" }
+      NR%2 == 0 { print >"'"${foo}"'" }' /etc/passwd
+diff "${foo}" /etc/passwd || error '(print > and >>"'"${foo}"'")'
 
-rm -f foo
-$awk '{ print | "cat >foo" }' /etc/passwd
-diff foo /etc/passwd || error '(print | "cat >foo")'
+rm -f "${foo}"
+$awk '{ print | "cat >'"${foo}"'" }' /etc/passwd
+diff "${foo}" /etc/passwd || error '(print | "cat >'"${foo}"'")'
 
 # tests flush of stdout before opening pipe
 echo '   head
 1
-2' >foo1
+2' >"${foo1}"
 $awk 'BEGIN { print "   head"
 	for (i = 1; i < 3; i++)
-		print i | "sort" }' >foo2
-diff foo1 foo2 || error '(buffering)'
+		print i | "sort" }' >"${foo2}"
+diff "${foo1}" "${foo2}" || error '(buffering)'
 
-rm -f foo[12]
-$awk '{ print >"/dev/stderr" }' /etc/passwd 1>foo1 2>foo2
-diff foo2 /etc/passwd || error '(print >"/dev/stderr")'
-diff foo1 /dev/null  || error '(print >"/dev/stderr")'
+rm -f "${foo}"[12]
+$awk '{ print >"/dev/stderr" }' /etc/passwd 1>"${foo1}" 2>"${foo2}"
+diff "${foo2}" /etc/passwd || error '(print >"/dev/stderr")'
+diff "${foo1}" /dev/null  || error '(print >"/dev/stderr")'
 
-rm -f foo[12]
-$awk '{ print >"/dev/stdout" }' /etc/passwd 1>foo1 2>foo2
-diff foo1 /etc/passwd || error '(print >"/dev/stdout")'
-diff foo2 /dev/null  || error '(print >"/dev/stderr")'
+rm -f "${foo}"[12]
+$awk '{ print >"/dev/stdout" }' /etc/passwd 1>"${foo1}" 2>"${foo2}"
+diff "${foo1}" /etc/passwd || error '(print >"/dev/stdout")'
+diff "${foo2}" /dev/null  || error '(print >"/dev/stderr")'
 
 exit $exit_code

@@ -1,13 +1,19 @@
 #!/bin/sh
 
-echo T.expr: tests of miscellaneous expressions
+testname="$(basename "$0")"
+run_dir="$(pwd)"
+cd "$(dirname "$0")" || exit 1
+src_dir="$(pwd)"
+cd "${run_dir}" || exit 1
 
 awk=${awk-../a.out}
+foo1="${run_dir}/${testname}.output.1"
+foo2="${run_dir}/${testname}.output.2"
 
 $awk '
 BEGIN {
 	FS = "\t"
-	awk = "../a.out"
+	awk = "'"${awk}"'"
 }
 NF == 0 || $1 ~ /^#/ {
 	next
@@ -26,15 +32,15 @@ $1 ~ /try/ {	# new test
 		input = $1
 		for (i = 2; i < NF; i++)	# input data
 			input = input "\t" $i
-		test = sprintf("./echo '"'"'%s'"'"' | %s >foo1; ",
+		test = sprintf("echo '"'"'%s'"'"' | %s >'"${foo1}"'; ",
 			input, prog)
 		if ($NF == "\"\"")
-			output = ">foo2;"
+			output = ">'"${foo2}"';"
 		else
-			output = sprintf("./echo '"'"'%s'"'"' >foo2; ", $NF)
+			output = sprintf("echo '"'"'%s'"'"' >'"${foo2}"'; ", $NF)
 		gsub(/\\t/, "\t", output)
 		gsub(/\\n/, "\n", output)
-		run = sprintf("cmp foo1 foo2 || echo test %d.%d failed",
+		run = sprintf("cmp '"${foo1} ${foo2}"' || echo test %d.%d failed",
 			nt, ++nt2)
 		# print  "input is", input
 		# print  "test is", test
@@ -45,7 +51,7 @@ $1 ~ /try/ {	# new test
 	tt += nt2
 }
 END { print tt, "tests" }
-' >foo1 <<\!!!!
+' >"${foo1}" <<\!!!!
 # General format:
 # try program as rest of line
 # $1	$2	$3	output1  (\t for tab, \n for newline,
@@ -234,11 +240,12 @@ try { f[1]=1; f[2]=2; print $f[1], $f[1]++, $f[2], f[1], f[2] }
 
 !!!!
 
-if grep -q 'failed' foo1; then
-  cat foo1
+if grep -q 'failed' "${foo1}"; then
+  cat "${foo1}"
   echo "T.expr: FAIL"
   exit 1
 else
   echo "T.expr: PASS"
+  rm -f "${foo1}" "${foo2}"
   exit 0
 fi

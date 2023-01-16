@@ -7,15 +7,23 @@
 # Licence: SPDX Identifier: Apache-2.0
 
 testname="$(basename "$0")"
+run_dir="$(pwd)"
+cd "$(dirname "$0")" || exit 1
+src_dir="$(pwd)"
+cd "${run_dir}" || exit 1
+
 exit_code=0
 error() {
   echo "$testname: FAIL - $1"
   exit_code=1
 }
 
-echo T.exprconv:  check conversion of expr to number
+#echo T.exprconv:  check conversion of expr to number
 
 awk=${awk-../a.out}
+foo0="${run_dir}/${testname}.output.0"
+foo1="${run_dir}/${testname}.output.1"
+foo2="${run_dir}/${testname}.output.2"
 
 $awk '
 BEGIN {	x = (1 > 0); print x
@@ -26,13 +34,14 @@ BEGIN {	x = (1 > 0); print x
 	print (0 == 0.0)
 	# x = ((1 == 1e0) && (1 == 10e-1) && (1 == .1e2)); print x
 	exit
-}' >foo1
+}' >"${foo1}"
 echo '1
 0
 1
 0
 1
-1' >foo2
-cmp foo1 foo2 || error '(1 > 0, etc.)'
+1' >"${foo2}"
+cmp "${foo1}" "${foo2}" || error '(1 > 0, etc.)'
+rm -f "${foo1}" "${foo2}"
 
 exit $exit_code

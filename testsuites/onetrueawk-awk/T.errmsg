@@ -7,6 +7,11 @@
 # Licence: SPDX Identifier: Apache-2.0
 
 testname="$(basename "$0")"
+run_dir="$(pwd)"
+cd "$(dirname "$0")" || exit 1
+src_dir="$(pwd)"
+cd "${run_dir}" || exit 1
+
 exit_code=0
 error() {
   echo "$testname: FAIL - $1"
@@ -16,18 +21,25 @@ error() {
 #echo T.errmsg:  check some error messages
 
 awk=${awk-../a.out}
+script="${run_dir}/${testname}.script.sh"
+foo="${run_dir}/${testname}.output"
+foo0="${run_dir}/${testname}.output.0"
+foo1="${run_dir}/${testname}.output.1"
+foo2="${run_dir}/${testname}.output.2"
+glop="${run_dir}/${testname}.glop"
+devnull="${run_dir}/${testname}.errors"
 
-ls >glop
+ls "${src_dir}" >"${glop}"
 awk=$awk awk  '
 {	pat = $0
 	prog = ""
 	while (getline x > 0 && x != "")
 		prog = prog "\n" x
-	print sprintf("\n%s '"'"'%s'"'"' <glop >>devnull 2>foo",
+	print sprintf("\n%s '"'"'%s'"'"' <T.errmsg.glop >>T.errmsg.errors 2>T.errmsg.output",
 		ENVIRON["awk"], prog)
-	print sprintf("grep '"'"'%s'"'"' foo >>devnull || echo '"'"'BAD: %s'"'"' failed", pat, pat)
+	print sprintf("grep '"'"'%s'"'"' T.errmsg.output >>T.errmsg.errors || echo '"'"'BAD: %s'"'"' failed", pat, pat)
 }
-' >foo.sh <<\!!!!
+' >"${script}" <<\!!!!
 illegal primary in regular expression
 /(/
 
@@ -205,28 +217,36 @@ BEGIN { print }
 
 
 echo '	running tests in foo.sh'
-sh foo.sh
+sh "${script}"
+rm "${glop}" "${devnull}" "${script}"
 
 test -r core && error 'someone dropped core'
+rm -f core
 
-echo xxx >foo0
+echo xxx >"${foo0}"
 $awk '{print x}' x='a
-b' foo0 >foo1 2>foo2
-grep 'newline in string' foo2 >/dev/null || error 'newline in string'
+b' "${foo0}" >"${foo1}" 2>"${foo2}"
+grep 'newline in string' "${foo2}" >/dev/null || error 'newline in string'
+rm -f "${foo0}" "${foo1}" "${foo2}"
 
-$awk -safe 'BEGIN{"date" | getline}' >foo 2>foo2
-grep 'cmd | getline is unsafe' foo2 >/dev/null || error 'cmd|getline unsafe'
+$awk -safe 'BEGIN{"date" | getline}' >"${foo}" 2>"${foo2}"
+grep 'cmd | getline is unsafe' "${foo2}" >/dev/null || error 'cmd|getline unsafe'
+rm -f "${foo}" "${foo2}"
 
-$awk -safe 'BEGIN{print >"foo"}' >foo 2>foo2
-grep 'print > is unsafe' foo2 >/dev/null || error 'print > unsafe'
+$awk -safe 'BEGIN{print >""${foo}""}' >"${foo}" 2>"${foo2}"
+grep 'print > is unsafe' "${foo2}" >/dev/null || error 'print > unsafe'
+rm -f "${foo}" "${foo2}"
 
-$awk -safe 'BEGIN{print >> "foo"}' >foo 2>foo2
-grep 'print >> is unsafe' foo2 >/dev/null || error 'print >> unsafe'
+$awk -safe 'BEGIN{print >> ""${foo}""}' >"${foo}" 2>"${foo2}"
+grep 'print >> is unsafe' "${foo2}" >/dev/null || error 'print >> unsafe'
+rm -f "${foo}" "${foo2}"
 
-$awk -safe 'BEGIN{print | "foo"}' >foo 2>foo2
-grep 'print | is unsafe' foo2 >/dev/null || error 'print | unsafe'
+$awk -safe 'BEGIN{print | ""${foo}""}' >"${foo}" 2>"${foo2}"
+grep 'print | is unsafe' "${foo2}" >/dev/null || error 'print | unsafe'
+rm -f "${foo}" "${foo2}"
 
-$awk -safe 'BEGIN {system("date")}' >foo 2>foo2
-grep 'system is unsafe' foo2 >/dev/null || error 'system unsafe'
+$awk -safe 'BEGIN {system("date")}' >"${foo}" 2>"${foo2}"
+grep 'system is unsafe' "${foo2}" >/dev/null || error 'system unsafe'
+rm -f "${foo}" "${foo2}"
 
 exit $exit_code

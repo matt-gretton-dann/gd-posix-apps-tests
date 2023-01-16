@@ -6,11 +6,6 @@
 # Copyright 2022 Matthew Gretton-Dann
 # Licence: SPDX Identifier: Apache-2.0
 
-run_dir="$(pwd)"
-cd "$(dirname "$0")"
-src_dir="$(pwd)"
-cd "${run_dir}"
-
 echo() {
   if [ "X$1" = "X-n" ]
   then
@@ -22,6 +17,12 @@ echo() {
 }
 
 testname="$(basename "$0")"
+run_dir="$(pwd)"
+cd "$(dirname "$0")"
+src_dir="$(pwd)"
+cd "${run_dir}"
+
+
 exit_code=0
 
 error() {
@@ -33,11 +34,13 @@ error() {
 # for which thanks.
 
 awk="${awk-../a.out}"
-#echo="${echo-echo}"
+foo="${run_dir}/${testname}.output.0"
+foo1="${run_dir}/${testname}.output.1"
+foo2="${run_dir}/${testname}.output.2"
 
 # arrayref:
 echo '1
-1' >foo1
+1' >"${foo1}"
 "$awk" '
 	BEGIN { # foo[10] = 0		# put this line in and it will work
 		test(foo); print foo[1]
@@ -45,40 +48,43 @@ echo '1
 	}
 	function test(foo) { test2(foo) }
 	function test2(bar) { bar[1] = 1 }
-' >foo2
-cmp -s foo1 foo2 || error 'arrayref'
+' >"${foo2}"
+cmp -s "${foo1}" "${foo2}" || error 'arrayref'
+rm -f "${foo}" "${foo1}" "${foo2}"
 
 # asgext
 echo '1 2 3
 1
-1 2 3 4' >foo
+1 2 3 4' >"${foo}"
 echo '3
 1 2 3 a
 
 1   a
 3
-1 2 3 a' >foo1
-$awk '{ print $3; $4 = "a"; print }' foo >foo2
-cmp -s foo1 foo2 || error 'asgext'
+1 2 3 a' >"${foo1}"
+$awk '{ print $3; $4 = "a"; print }' "${foo}" >"${foo2}"
+cmp -s "${foo1}" "${foo2}" || error 'asgext'
+rm -f "${foo}" "${foo1}" "${foo2}"
 
 # backgsub:
 echo 'x\y
-x\\y' >foo
+x\\y' >"${foo}"
 echo 'x\y
 xAy
 xAy
-xAAy' >foo1
+xAAy' >"${foo1}"
 $awk '{	x = y = $0
         gsub( /\\\\/, "A", x); print x
         gsub( "\\\\", "A", y); print y
-}' foo >foo2
-cmp -s foo1 foo2 || error 'backgsub'
+}' "${foo}" >"${foo2}"
+cmp -s "${foo1}" "${foo2}" || error 'backgsub'
+rm -f "${foo}" "${foo1}" "${foo2}"
 
 
 # backgsub2:
 echo 'x\y
 x\\y
-x\\\y' >foo
+x\\\y' >"${foo}"
 echo '	x\y
 	x\y
 	x\y
@@ -87,19 +93,20 @@ echo '	x\y
 	x\\\y
 	x\\y
 	x\\\y
-	x\\\\y' >foo1
+	x\\\\y' >"${foo1}"
 $awk '{	w = x = y = z = $0
         gsub( /\\\\/, "\\", w); print "	" w
         gsub( /\\\\/, "\\\\", x); print "	" x
         gsub( /\\\\/, "\\\\\\", y); print "	" y
 }
-' foo >foo2
-cmp -s foo1 foo2 || error 'backgsub2'
+' "${foo}" >"${foo2}"
+cmp -s "${foo1}" "${foo2}" || error 'backgsub2'
+rm -f "${foo}" "${foo1}" "${foo2}"
 
 
 # backgsub3:
 echo 'xax
-xaax' >foo
+xaax' >"${foo}"
 echo '	xax
 	x&x
 	x&x
@@ -111,7 +118,7 @@ echo '	xax
 	x&&x
 	x\a\ax
 	x\a\ax
-	x\&\&x' >foo1
+	x\&\&x' >"${foo1}"
 $awk '{	w = x = y = z = z1 = z2 = $0
         gsub( /a/, "\&", w); print "	" w
         gsub( /a/, "\\&", x); print "	" x
@@ -120,13 +127,14 @@ $awk '{	w = x = y = z = z1 = z2 = $0
         gsub( /a/, "\\\\\&", z1); print "	" z1
         gsub( /a/, "\\\\\\&", z2); print "	" z2
 }
-' foo >foo2
-cmp -s foo1 foo2 || error 'backgsub3'
+' "${foo}" >"${foo2}"
+cmp -s "${foo1}" "${foo2}" || error 'backgsub3'
+rm -f "${foo}" "${foo1}" "${foo2}"
 
 
 # backsub3:
 echo 'xax
-xaax' >foo
+xaax' >"${foo}"
 echo '	xax
 	x&x
 	x&x
@@ -138,7 +146,7 @@ echo '	xax
 	x&ax
 	x\aax
 	x\aax
-	x\&ax' >foo1
+	x\&ax' >"${foo1}"
 $awk '{	w = x = y = z = z1 = z2 = $0
         sub( /a/, "\&", w); print "	" w
         sub( /a/, "\\&", x); print "	" x
@@ -147,30 +155,33 @@ $awk '{	w = x = y = z = z1 = z2 = $0
         sub( /a/, "\\\\\&", z1); print "	" z1
         sub( /a/, "\\\\\\&", z2); print "	" z2
 }
-' foo >foo2
-cmp -s foo1 foo2 || error 'backsub3'
+' "${foo}" >"${foo2}"
+cmp -s "${foo1}" "${foo2}" || error 'backsub3'
+rm -f "${foo}" "${foo1}" "${foo2}"
 
 
 # backsub:
 echo 'x\y
-x\\y' >foo
+x\\y' >"${foo}"
 echo 'x\y
 x\\y
 x\\y
-x\\\y' >foo1
+x\\\y' >"${foo1}"
 $awk '{	x = y = $0
         sub( /\\\\/, "\\\\", x); print x
         sub( "\\\\", "\\\\", y); print y
-}' foo >foo2
-cmp -s foo1 foo2 || error 'backsub'
+}' "${foo}" >"${foo2}"
+cmp -s "${foo1}" "${foo2}" || error 'backsub'
+rm -f "${foo}" "${foo1}" "${foo2}"
 
 
 
 
 # dynlj:
-echo 'hello               world' >foo1
-$awk 'BEGIN { printf "%*sworld\n", -20, "hello" }' >foo2
-cmp -s foo1 foo2 || error 'dynlj'
+echo 'hello               world' >"${foo1}"
+$awk 'BEGIN { printf "%*sworld\n", -20, "hello" }' >"${foo2}"
+cmp -s "${foo1}" "${foo2}" || error 'dynlj'
+rm -f "${foo}" "${foo1}" "${foo2}"
 
 # fsrs:
 echo 'a b
@@ -179,13 +190,13 @@ e f
 
 1 2
 3 4
-5 6' >foo
+5 6' >"${foo}"
 # note -n:
 echo -n 'a b
 c d
 e f1 2
 3 4
-5 6' >foo1
+5 6' >"${foo1}"
 $awk '
 BEGIN {
        RS=""; FS="\n";
@@ -194,31 +205,35 @@ BEGIN {
 {
         split ($2,f," ")
         print $0;
-}' foo >foo2
-cmp -s foo1 foo2 || error 'fsrs'
+}' "${foo}" >"${foo2}"
+cmp -s "${foo1}" "${foo2}" || error 'fsrs'
+rm -f "${foo}" "${foo1}" "${foo2}"
 
 # intest
-echo '0 1' >foo1
+echo '0 1' >"${foo1}"
 $awk 'BEGIN {
 	bool = ((b = 1) in c);
 	print bool, b	# gawk-3.0.1 prints "0 "; should print "0 1"
-}' >foo2
-cmp -s foo1 foo2 || error 'intest'
+}' >"${foo2}"
+cmp -s "${foo1}" "${foo2}" || error 'intest'
+rm -f "${foo}" "${foo1}" "${foo2}"
 
 # intprec:
-echo '0000000005:000000000e' >foo1
-$awk 'BEGIN { printf "%.10d:%.10x\n", 5, 14 }' >foo2
-cmp -s foo1 foo2 || error 'intprec'
+echo '0000000005:000000000e' >"${foo1}"
+$awk 'BEGIN { printf "%.10d:%.10x\n", 5, 14 }' >"${foo2}"
+cmp -s "${foo1}" "${foo2}" || error 'intprec'
+rm -f "${foo}" "${foo1}" "${foo2}"
 
 # litoct:
 echo 'axb
 ab
-a*b' >foo
+a*b' >"${foo}"
 echo 'no match
 no match
-match' >foo1
-$awk '{ if (/a\52b/) print "match" ; else print "no match" }' foo >foo2
-cmp -s foo1 foo2 || error 'litoct'
+match' >"${foo1}"
+$awk '{ if (/a\52b/) print "match" ; else print "no match" }' "${foo}" >"${foo2}"
+cmp -s "${foo1}" "${foo2}" || error 'litoct'
+rm -f "${foo}" "${foo1}" "${foo2}"
 
 # math:
 echo 'cos(0.785398) = 0.707107
@@ -226,7 +241,7 @@ sin(0.785398) = 0.707107
 e = 2.718282
 log(e) = 1.000000
 sqrt(pi ^ 2) = 3.141593
-atan2(1, 1) = 0.785398' >foo1
+atan2(1, 1) = 0.785398' >"${foo1}"
 $awk 'BEGIN {
 	pi = 3.1415927
 	printf "cos(%f) = %f\n", pi/4, cos(pi/4)
@@ -236,15 +251,16 @@ $awk 'BEGIN {
 	printf "log(e) = %f\n", log(e)
 	printf "sqrt(pi ^ 2) = %f\n", sqrt(pi ^ 2)
 	printf "atan2(1, 1) = %f\n", atan2(1, 1)
-}' >foo2
-cmp -s foo1 foo2 || error 'math'
+}' >"${foo2}"
+cmp -s "${foo1}" "${foo2}" || error 'math'
+rm -f "${foo}" "${foo1}" "${foo2}"
 
 # nlfldsep:
 echo 'some stuff
 more stuffA
 junk
 stuffA
-final' >foo
+final' >"${foo}"
 echo '4
 some
 stuff
@@ -257,89 +273,98 @@ stuff
 
 1
 final
-' >foo1
+' >"${foo1}"
 $awk 'BEGIN { RS = "A" }
 {print NF; for (i = 1; i <= NF; i++) print $i ; print ""}
-' foo >foo2
-cmp -s foo1 foo2 || error 'nlfldsep'
+' "${foo}" >"${foo2}"
+cmp -s "${foo1}" "${foo2}" || error 'nlfldsep'
+rm -f "${foo}" "${foo1}" "${foo2}"
 
 # numsubstr:
 echo '5000
 10000
-5000' >foo
+5000' >"${foo}"
 echo '000
 1000
-000' >foo1
-$awk '{ print substr(1000+$1, 2) }' foo >foo2
-cmp -s foo1 foo2 || error 'numsubstr'
+000' >"${foo1}"
+$awk '{ print substr(1000+$1, 2) }' "${foo}" >"${foo2}"
+cmp -s "${foo1}" "${foo2}" || error 'numsubstr'
+rm -f "${foo}" "${foo1}" "${foo2}"
 
 # pcntplus:
-echo '+3 4' >foo1
-$awk 'BEGIN { printf "%+d %d\n", 3, 4 }' >foo2
-cmp -s foo1 foo2 || error 'pcntplus'
+echo '+3 4' >"${foo1}"
+$awk 'BEGIN { printf "%+d %d\n", 3, 4 }' >"${foo2}"
+cmp -s "${foo1}" "${foo2}" || error 'pcntplus'
+rm -f "${foo}" "${foo1}" "${foo2}"
 
 # prt1eval:
-echo 1 >foo1
+echo 1 >"${foo1}"
 $awk 'function tst () {
 	sum += 1
 	return sum
 }
 BEGIN { OFMT = "%.0f" ; print tst() }
-' >foo2
-cmp -s foo1 foo2 || error 'prt1eval'
+' >"${foo2}"
+cmp -s "${foo1}" "${foo2}" || error 'prt1eval'
+rm -f "${foo}" "${foo1}" "${foo2}"
 
 # reparse:
-echo '1 axbxc 2' >foo
+echo '1 axbxc 2' >"${foo}"
 echo '1
 1 a b c 2
-1 a b' >foo1
+1 a b' >"${foo1}"
 $awk '{	gsub(/x/, " ")
 	$0 = $0
 	print $1
 	print $0
 	print $1, $2, $3
-}' foo >foo2
-cmp -s foo1 foo2 || error 'reparse'
+}' "${foo}" >"${foo2}"
+cmp -s "${foo1}" "${foo2}" || error 'reparse'
+rm -f "${foo}" "${foo1}" "${foo2}"
 
 # rswhite:
 echo '    a b
-c d' >foo
+c d' >"${foo}"
 echo '<    a b
-c d>' >foo1
+c d>' >"${foo1}"
 $awk 'BEGIN { RS = "" }
-{ printf("<%s>\n", $0) }' foo  >foo2
-cmp -s foo1 foo2 || error 'rswhite'
+{ printf("<%s>\n", $0) }' "${foo}"  >"${foo2}"
+cmp -s "${foo1}" "${foo2}" || error 'rswhite'
+rm -f "${foo}" "${foo1}" "${foo2}"
 
 # splitvar:
-echo 'Here===Is=Some=====Data' >foo
-echo 4 >foo1
+echo 'Here===Is=Some=====Data' >"${foo}"
+echo 4 >"${foo1}"
 $awk '{	sep = "=+"
 	n = split($0, a, sep)
 	print n
-}' foo >foo2
-cmp -s foo1 foo2 || error 'splitvar'
+}' "${foo}" >"${foo2}"
+cmp -s "${foo1}" "${foo2}" || error 'splitvar'
+rm -f "${foo}" "${foo1}" "${foo2}"
 
 # splitwht:
 echo '4
-5' >foo1
+5' >"${foo1}"
 $awk 'BEGIN {
 	str = "a   b\t\tc d"
 	n = split(str, a, " ")
 	print n
 	m = split(str, b, / /)
 	print m
-}' >foo2
-cmp -s foo1 foo2 || error 'splitwht'
+}' >"${foo2}"
+cmp -s "${foo1}" "${foo2}" || error 'splitwht'
+rm -f "${foo}" "${foo1}" "${foo2}"
 
 # sprintfc:
 echo '65
 66
-foo' >foo
+foo' >"${foo}"
 echo 'A 65
 B 66
-f foo' >foo1
-$awk '{ print sprintf("%c", $1), $1 }' foo >foo2
-cmp -s foo1 foo2 || error 'sprintfc'
+f foo' >"${foo1}"
+$awk '{ print sprintf("%c", $1), $1 }' "${foo}" >"${foo2}"
+cmp -s "${foo1}" "${foo2}" || error 'sprintfc'
+rm -f "${foo}" "${foo1}" "${foo2}"
 
 # substr:
 echo 'xxA' '                                    ' '
@@ -351,7 +376,7 @@ xx
 xxab
 xx
 xxef
-xx' >foo1
+xx' >"${foo1}"
 $awk 'BEGIN {
 	x = "A"
 	printf("xx%-39s\n", substr(x,1,39))
@@ -365,50 +390,54 @@ $awk 'BEGIN {
 	print "xx" substr("abcdef", 5, 5)
 	print "xx" substr("abcdef", 7, 2)
 	exit (0)
-}' >foo2
-diff -up foo1 foo2
-cmp -l foo1 foo2 || error 'substr'
+}' >"${foo2}"
+diff -up "${foo1}" "${foo2}"
+cmp -l "${foo1}" "${foo2}" || error 'substr'
+rm -f "${foo}" "${foo1}" "${foo2}"
 
 # fldchg:
-echo 'aa aab c d e f' >foo
+echo 'aa aab c d e f' >"${foo}"
 echo '1: + +b c d e f
 2: + +b <c> d e f
-2a:%+%+b%<c>%d%e' >foo1
+2a:%+%+b%<c>%d%e' >"${foo1}"
 $awk '{	gsub("aa", "+")
 	print "1:", $0
 	$3 = "<" $3 ">"
 	print "2:", $0
 	print "2a:" "%" $1 "%" $2 "%" $3 "%" $4 "%" $5
-}' foo >foo2
-cmp -s foo1 foo2 || error 'fldchg'
+}' "${foo}" >"${foo2}"
+cmp -s "${foo1}" "${foo2}" || error 'fldchg'
+rm -f "${foo}" "${foo1}" "${foo2}"
 
 # fldchgnf:
-echo 'a b c d' >foo
+echo 'a b c d' >"${foo}"
 echo 'a::c:d
-4' >foo1
-$awk '{ OFS = ":"; $2 = ""; print $0; print NF }' foo >foo2
-cmp -s foo1 foo2 || error 'fldchgnf'
+4' >"${foo1}"
+$awk '{ OFS = ":"; $2 = ""; print $0; print NF }' "${foo}" >"${foo2}"
+cmp -s "${foo1}" "${foo2}" || error 'fldchgnf'
+rm -f "${foo}" "${foo1}" "${foo2}"
 
 # funstack:
 # echo '	funstack test takes 5-10 sec, replicates part of T.beebe'
-$awk -f "$src_dir/funstack.awk" "$src_dir/funstack.in" >foo 2>&1
-cmp -s foo "$src_dir/funstack.ok" || error 'funstack'
+$awk -f "$src_dir/funstack.awk" "$src_dir/funstack.in" >"${foo}" 2>&1
+cmp -s "${foo}" "$src_dir/funstack.ok" || error 'funstack'
+rm -f "${foo}" "${foo1}" "${foo2}"
 
 # OFMT from arnold robbins 6/02:
 #	5.7 with OFMT = %0.f is 6
-echo '6' >foo1
+echo '6' >"${foo1}"
 $awk 'BEGIN {
 	OFMT = "%.0f"
 	print 5.7
-}' >foo2
-cmp -s foo1 foo2 || error 'ofmt'
-
+}' >"${foo2}"
+cmp -s "${foo1}" "${foo2}" || error 'ofmt'
+rm -f "${foo}" "${foo1}" "${foo2}"
 
 ### don't know what this is supposed to do now.
 ### # convfmt:
 ### echo 'a =  123.46
 ### a =  123.456
-### a =  123.456' >foo1
+### a =  123.456' >"${foo1}"
 ### $awk 'BEGIN {
 ### 	CONVFMT = "%2.2f"
 ### 	a = 123.456
@@ -419,7 +448,7 @@ cmp -s foo1 foo2 || error 'ofmt'
 ### 	print "a = ", a
 ### 	a += 0                  # make a numeric only again
 ### 	print "a = ", a    # use a as string
-### }' >foo2
-### cmp -s foo1 foo2 || echo 'BAD: T.gawk convfmt'
+### }' >"${foo2}"
+### cmp -s "${foo1}" "${foo2}" || echo 'BAD: T.gawk convfmt'
 
 exit $exit_code

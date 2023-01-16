@@ -6,6 +6,11 @@
 # Copyright 2022 Matthew Gretton-Dann
 # Licence: SPDX Identifier: Apache-2.0
 
+run_dir="$(pwd)"
+cd "$(dirname "$0")"
+src_dir="$(pwd)"
+cd "${run_dir}"
+
 testname="$(basename "$0")"
 exit_code=0
 error() {
@@ -15,7 +20,9 @@ error() {
 
 #echo T.csconcat: test constant string concatentation
 
-awk=${awk-../a.out}
+awk="${awk-../a.out}"
+foo1="${run_dir}/${testname}.output.1"
+foo2="${run_dir}/${testname}.output.2"
 
 $awk '
 BEGIN {
@@ -29,7 +36,7 @@ BEGIN {
  	print "hello" " " "world"
  	print "hello" (" " "world")
 }
-' > foo1
+' > "${foo1}"
 
 echo "abcdef aaa
 helloworld
@@ -37,8 +44,9 @@ helloworld
  hello
 hello" "
 hello world
-hello world" >foo2
+hello world" >"${foo2}"
 
-cmp -l foo1 foo2
-diff foo1 foo2 || error '(1)'
+cmp -l "${foo1}" "${foo2}"
+diff "${foo1}" "${foo2}" || error '(1)'
+rm -f "${foo1}" "${foo2}"
 exit $exit_code

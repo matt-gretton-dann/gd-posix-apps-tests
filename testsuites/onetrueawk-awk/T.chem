@@ -31,11 +31,12 @@ error() {
 awk=${awk-../a.out}
 oldawk=${oldawk-awk}
 chem="$src_dir/chem.awk"
+output="$run_dir/T.chem.output"
 
 for i in lsd1.p penicil.p res.p
 do
-	$awk -f "$chem" "$src_dir/$i" >foo1
-	diff foo1 "$src_dir/$i.expected" || error "$i"
+	$awk -f "$chem" "$src_dir/$i" >"$output"
+	diff "$output" "$src_dir/$i.expected" || error "$i"
 done
 
 exit $exit_code

@@ -1,9 +1,18 @@
-echo T.re: tests of regular expression code
+#!/bin/sh
+# Original script:
+# Copyright 1997 Lucent Technologies.  See LICENCE for licensing information.
+#
+# Modifications:
+# Copyright 2022 Matthew Gretton-Dann
+# Licence: SPDX Identifier: Apache-2.0
 
-awk '
+echo T.re: tests of regular expression code
+awk=${awk-../a.out}
+
+"$awk" '
 BEGIN {
 	FS = "\t"
-	awk = "../a.out"
+	awk = "'"$awk"'"
 }
 NF == 0 {
 	next
@@ -26,7 +35,7 @@ $3 == "\"\"" {	# explicit empty line
 }
 NF > 2 {	# generate a test
 	input = $3
-	test = sprintf("./echo '"'"'%s'"'"' | %s '"'"'%s/%s/ {print \"%d fails %s %s %s\"}'"'"'",
+	test = sprintf("echo '"'"'%s'"'"' | %s '"'"'%s/%s/ {print \"%d fails %s %s %s\"}'"'"'",
 		input, awk, neg, re, NR, re, op, input)
 	# printf(" %3d   %s %s %s:\n", NR, re, op, input)
 	# print "test is |" test "|"
@@ -54,7 +63,7 @@ a	~	a
 		xxxxx
 .	~	x
 		xxx
-	!~	""			
+	!~	""
 .a	~	xa
 		xxa
 		xax
@@ -139,7 +148,7 @@ a?b?c?	~	""
 		xa
 	!~	""
 		ab
-		aba			
+		aba
 [0-9]	~	1
 		567
 		x0y

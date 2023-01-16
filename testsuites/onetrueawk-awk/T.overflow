@@ -7,31 +7,38 @@
 # Licence: SPDX Identifier: Apache-2.0
 
 testname="$(basename "$0")"
+run_dir="$(pwd)"
+cd "$(dirname "$0")" || exit 1
+src_dir="$(pwd)"
+cd "${run_dir}" || exit 1
+
 exit_code=0
 error() {
   echo "$testname: FAIL - $1"
   exit_code=1
 }
 
-echo T.overflow: test some overflow conditions
-
 awk=${awk-../a.out}
+foo="${run_dir}/${testname}.output"
+foo0="${run_dir}/${testname}.output.0"
+foo1="${run_dir}/${testname}.output.1"
+foo2="${run_dir}/${testname}.output.2"
 
 $awk 'BEGIN {
  	for (i = 0; i < 1000; i++) printf("abcdefghijklmnopqsrtuvwxyz")
  	printf("\n")
  	exit
-}' >foo1
-$awk '{print}' foo1 >foo2
-cmp -s foo1 foo2 || error 'record 1'
+}' >"${foo1}"
+$awk '{print}' "${foo1}" >"${foo2}"
+cmp -s "${foo1}" "${foo2}" || error 'record 1'
 
-echo 'abcdefghijklmnopqsrtuvwxyz' >foo1
+echo 'abcdefghijklmnopqsrtuvwxyz' >"${foo1}"
 echo hello | $awk '
  { for (i = 1; i < 500; i++) s = s "abcdefghijklmnopqsrtuvwxyz "
    $0 = s
    print $1
- }'  >foo2
-cmp -s foo1 foo2 || error 'abcdef'
+ }'  >"${foo2}"
+cmp -s "${foo1}" "${foo2}" || error 'abcdef'
 
 # default input record 3072, fields 200:
 $awk '
@@ -41,9 +48,9 @@ BEGIN {
 			printf(" 123456789")
 		printf("\n");
 	}
-} ' >foo1
-$awk '{$1 = " 123456789"; print}' foo1 >foo2
-cmp -s foo1 foo2 || error '-mr -mf set $1'
+} ' >"${foo1}"
+$awk '{$1 = " 123456789"; print}' "${foo1}" >"${foo2}"
+cmp -s "${foo1}" "${foo2}" || error '-mr -mf set $1'
 
 $awk '
 BEGIN {
@@ -52,11 +59,11 @@ BEGIN {
 			printf(" 123456789")
 		printf("\n");
 	}
-} ' >foo
-$awk  '{print NF}' foo >foo1
+} ' >"${foo}"
+$awk  '{print NF}' "${foo}" >"${foo1}"
 echo '500
-500' >foo2
-cmp -s foo1 foo2 || error '-mr -mf NF'
+500' >"${foo2}"
+cmp -s "${foo1}" "${foo2}" || error '-mr -mf NF'
 
 rm -f core
 # this should not drop core
@@ -64,10 +71,10 @@ $awk 'BEGIN {
 	for (i = 1; i < 1000; i++) s = s "a-z"
 	if ("x" ~ "[" s "]")
 		print "ugh"
-}' >foo 2>foo
+}' >"${foo}" 2>"${foo}"
 test -r core && error "too long char class dropped core"
 
-echo 4000004 >foo1
+echo 4000004 >"${foo1}"
 $awk '
 BEGIN {
 	x1 = sprintf("%1000000s\n", "hello")
@@ -75,10 +82,10 @@ BEGIN {
 	x3 = sprintf("%1000000.1000000s\n", "goodbye")
 	x4 = sprintf("%-1000000.1000000s\n", "goodbye")
 	print length(x1 x2 x3 x4)
-}' >foo2
-cmp -s foo1 foo2 || error 'huge sprintfs'
+}' >"${foo2}"
+cmp -s "${foo1}" "${foo2}" || error 'huge sprintfs'
 
-echo 0 >foo1
+echo 0 >"${foo1}"
 $awk '
 BEGIN {
 	for (i = 0; i < 100000; i++)
@@ -89,14 +96,14 @@ BEGIN {
 	for (i in x)
 		n++
 	print n
-}' >foo2
-cmp -s foo1 foo2 || error 'big array'
+}' >"${foo2}"
+cmp -s "${foo1}" "${foo2}" || error 'big array'
 
-echo x >foo1
-$awk '{print $40000000000000}' <foo1 >foo2 2>foo
-grep "out of range field" foo >/dev/null || error "\$400000"
+echo x >"${foo1}"
+$awk '{print $40000000000000}' <"${foo1}" >"${foo2}" 2>"${foo}"
+grep "out of range field" "${foo}" >/dev/null || error "\$400000"
 
-rm -rf /tmp/awktestfoo*
+rm -rf /tmp/awktest"${foo}"*
 $awk 'BEGIN { for (i=1; i <= 1000; i++) print i >("/tmp/awktestfoo" i) }'
 ls /tmp/awktestfoo* | grep '1000' >/dev/null || error "openfiles"
 

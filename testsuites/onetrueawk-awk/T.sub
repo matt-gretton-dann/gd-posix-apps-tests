@@ -3,10 +3,12 @@ echo T.sub: tests of sub and gsub code
 # input lines are of form
 #	pattern  replacement  input-string  sub-output  gsub-output
 
-awk '
+awk=${awk-../a.out}
+
+"$awk" '
 BEGIN {
 	FS = "\t"
-	awk = "../a.out"
+	awk = "'"$awk"'"
 }
 NF == 0		{ next }
 $1 ~ /^#/	{ next }
@@ -98,7 +100,7 @@ a$	x	""	""	""
 ^.a	x	aa	x	x
 		ba	x	x
 		ab	ab	ab
-		a	a	a	
+		a	a	a
 ^.*a	xy	""	""	""
 		a	xy	xy
 		b	b	b

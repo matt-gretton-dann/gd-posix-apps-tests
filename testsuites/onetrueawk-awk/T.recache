@@ -7,18 +7,24 @@
 # Licence: SPDX Identifier: Apache-2.0
 
 testname="$(basename "$0")"
+run_dir="$(pwd)"
+cd "$(dirname "$0")" || exit 1
+src_dir="$(pwd)"
+cd "${run_dir}" || exit 1
+
 exit_code=0
 error() {
   echo "$testname: FAIL - $1"
   exit_code=1
 }
 
-echo T.recache: test re cache in b.c
 	# thanks to ross ridge for this horror
 
 awk=${awk-../a.out}
+foo1="${run_dir}/${testname}.output.1"
+foo2="${run_dir}/${testname}.output.2"
 
-echo b >foo1
+echo b >"${foo1}"
 $awk '
 BEGIN {
         #
@@ -44,7 +50,7 @@ BEGIN {
 
         print x
 }
-' >foo2
-diff foo1 foo2 || error 'T.recache'
+' >"${foo2}"
+diff "${foo1}" "${foo2}" || error 'T.recache'
 
 exit $exit_code

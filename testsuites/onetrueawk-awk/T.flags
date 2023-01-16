@@ -7,6 +7,11 @@
 # Licence: SPDX Identifier: Apache-2.0
 
 testname="$(basename "$0")"
+run_dir="$(pwd)"
+cd "$(dirname "$0")" || exit 1
+src_dir="$(pwd)"
+cd "${run_dir}" || exit 1
+
 exit_code=0
 error() {
   echo "$testname: FAIL - $1"
@@ -16,39 +21,41 @@ error() {
 #echo T.flags: test some commandline flags
 
 awk=${awk-../a.out}
+foo="${run_dir}/${testname}.output"
+
 
 fail=0
-$awk >foo 2>&1 || fail=1
-grep '[Uu]sage' foo >/dev/null || error 'bad usage'
+$awk >"${foo}" 2>&1 || fail=1
+grep '[Uu]sage' "${foo}" >/dev/null || error 'bad usage'
 test $fail = 1 || error 'bad usage - exit code'
 
 fail=0
-$awk -f >foo 2>&1 || fail=1
-grep 'no program' foo >/dev/null || error 'bad no program'
+$awk -f >"${foo}" 2>&1 || fail=1
+grep 'no program' "${foo}" >/dev/null || error 'bad no program'
 test $fail = 1 || error 'bad no program - exit code'
 
 fail=0
-$awk -f glop/glop >foo 2>&1 || fail=1
-grep 'can.t open' foo >/dev/null || error 'bad can.t open program'
+$awk -f glop/glop/THIS-FILE-DOES-NOT-EXIST >"${foo}" 2>&1 || fail=1
+grep 'can.t open' "${foo}" >/dev/null || error 'bad can.t open program'
 test $fail = 1 || error "bad can't open program - exit code"
 
 fail=0
-$awk -fglop/glop >foo 2>&1 || fail=1
-grep 'can.t open' foo >/dev/null || error 'bad can.t open program 2'
+$awk -fglop/glop/THIS-FILE-DOES-NOT-EXIST >"${foo}" 2>&1 || fail=1
+grep 'can.t open' "${foo}" >/dev/null || error 'bad can.t open program 2'
 test $fail = 1 || error "bad can't open program 2 - exit code"
 
 fail=0
-$awk -zz 'BEGIN{}' >foo 2>&1 || fail=1
-grep 'unknown option' foo >/dev/null || error 'bad unknown option'
+$awk -zz 'BEGIN{}' >"${foo}" 2>&1 || fail=1
+grep 'unknown option' "${foo}" >/dev/null || error 'bad unknown option'
 test $fail = 0 || error "bad unknown option - exit code"
 
 fail=0
-$awk -F  >foo 2>&1 || fail=1
-grep 'no field separator' foo >/dev/null || error 'bad missing field separator'
+$awk -F  >"${foo}" 2>&1 || fail=1
+grep 'no field separator' "${foo}" >/dev/null || error 'bad missing field separator'
 test $fail = 1 || error "bad missing field separator - exit code"
 
-#$awk -F '' 'BEGIN{}' >foo 2>&1 || fail=1
-#grep 'field separator FS is empty' foo >/dev/null || error 'bad empty field separator'
+#$awk -F '' 'BEGIN{}' >"${foo}" 2>&1 || fail=1
+#grep 'field separator FS is empty' "${foo}" >/dev/null || error 'bad empty field separator'
 #test $fail = 1 || error "bad empty field separator - exit code"
 
 exit $exit_code

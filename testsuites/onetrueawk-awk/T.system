@@ -7,6 +7,11 @@
 # Licence: SPDX Identifier: Apache-2.0
 
 testname="$(basename "$0")"
+run_dir="$(pwd)"
+cd "$(dirname "$0")" || exit 1
+src_dir="$(pwd)"
+cd "${run_dir}" || exit 1
+
 exit_code=0
 error() {
   echo "$testname: FAIL - $1"
@@ -16,17 +21,20 @@ error() {
 echo T.system: test system built-in
 
 awk=${awk-../a.out}
+foo="${run_dir}/${testname}.output"
+foo1="${run_dir}/${testname}.output.1"
 
-rm -f foo
+
+rm -f "${foo}"
 $awk 'BEGIN {
 	n = system("exit 3")
 	print n
 	exit n+1
 }
-' >foo
-echo $? >>foo
+' >"${foo}"
+echo $? >>"${foo}"
 echo "3
-4" >foo1
-diff foo foo1 || error '(1)'
+4" >"${foo1}"
+diff "${foo}" "${foo1}" || error '(1)'
 
 exit $exit_code

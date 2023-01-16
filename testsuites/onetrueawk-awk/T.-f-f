@@ -7,44 +7,51 @@
 # Licence: SPDX Identifier: Apache-2.0
 
 testname="$(basename "$0")"
+run_dir="$(pwd)"
+cd "$(dirname "$0")"
+src_dir="$(pwd)"
+cd "${run_dir}"
 
 error() {
   echo "$testname: FAIL - $1"
   exit 1
 }
 
-//echo T.-f-f: check multiple -f arguments
+#echo T.-f-f: check multiple -f arguments
 ec=0
 
 awk=${awk-../a.out}
+output="${run_dir}/T.-f-f.output."
 
 echo 'begin
-end' >foo
-echo 'BEGIN { print "begin" }' >foo1
-echo 'END { print "end" }' >foo2
-echo xxx | $awk -f foo1 -f foo2 >foo3
-diff foo foo3 || error "multiple -fs"
+end' >"${output}"
+echo 'BEGIN { print "begin" }' >"${output}1"
+echo 'END { print "end" }' >"${output}2"
+echo xxx | $awk -f "${output}1" -f "${output}2" >"${output}3"
+diff "${output}" "${output}3" || error "multiple -fs"
+rm -f "${output}" "${output}1" "${output}2" "${output}3"
 
 
-echo '/a/' | $awk -f - /etc/passwd >foo1
-$awk '/a/' /etc/passwd >foo2
-diff foo1 foo2 || error "-f -"
+echo '/a/' | $awk -f - /etc/passwd >"${output}1"
+$awk '/a/' /etc/passwd >"${output}2"
+diff "${output}1" "${output}2" || error "-f -"
+rm -f "${output}1" "${output}2"
 
+cp /etc/passwd "${output}1"
+echo '/./ {' >"${output}2"
+echo 'print' >"${output}3"
+echo '}' >"${output}4"
+$awk -f "${output}2" -f "${output}3" -f "${output}4" /etc/passwd >"${output}5"
+diff "${output}1" "${output}5" || error '3 files'
+rm -f "${output}1" "${output}2" "${output}3" "${output}4" "${output}5"
 
-cp /etc/passwd foo1
-echo '/./ {' >foo2
-echo 'print' >foo3
-echo '}' >foo4
-$awk -f foo2 -f foo3 -f foo4 /etc/passwd >foo5
-diff foo1 foo5 || error '3 files'
-
-
-echo '/./ {' >foo2
-echo 'print' >foo3
+echo '/./ {' >"${output}2"
+echo 'print' >"${output}3"
 echo '
 
 
 
-]' >foo4
-$awk -f foo2 -f foo3 -f foo4 /etc/passwd >foo5 2>foo6
-grep 'syntax error.*file foo4' foo6 >/dev/null 2>&1 || error 'source file name'
+]' >"${output}4"
+$awk -f "${output}2" -f "${output}3" -f "${output}4" /etc/passwd >"${output}5" 2>"${output}6"
+grep 'syntax error.*file .*T\.-f-f\.output.4' "${output}6" >/dev/null 2>&1 || error 'source file name'
+rm -f "${output}2" "${output}3" "{$output}4" "{$output}6"

@@ -17,6 +17,11 @@ echo() {
 }
 
 testname="$(basename "$0")"
+run_dir="$(pwd)"
+cd "$(dirname "$0")" || exit 1
+src_dir="$(pwd)"
+cd "${run_dir}" || exit 1
+
 exit_code=0
 error() {
   echo "$testname: FAIL - $1"
@@ -26,75 +31,82 @@ error() {
 #echo T.misc: miscellaneous buglets now watched for
 
 awk=${awk-../a.out}
+foo="${run_dir}/${testname}.output"
+foo0="${run_dir}/${testname}.output.0"
+foo1="${run_dir}/${testname}.output.1"
+foo2="${run_dir}/${testname}.output.2"
+foo3="${run_dir}/${testname}.output.3"
+foo4="${run_dir}/${testname}.output.4"
+foo5="${run_dir}/${testname}.output.5"
 
 rm -f core
 
 echo 'The big brown over the lazy doe
 The big brown over the lazy dog
 x
-The big brown over the lazy dog' >foo
+The big brown over the lazy dog' >"${foo}"
 echo 'failed
 succeeded
 failed
-succeeded' >foo1
+succeeded' >"${foo1}"
 $awk '{ if (match($0, /^The big brown over the lazy dog/) == 0) {
 		printf("failed\n")
 	} else {
 		printf("succeeded\n")
 	}
-} ' foo >foo2
-cmp -s foo1 foo2 || error 'ghosh RE bug'
+} ' "${foo}" >"${foo2}"
+cmp -s "${foo1}" "${foo2}" || error 'ghosh RE bug'
 
 echo '123
 1234567890
-12345678901' >foo
-echo '12345678901' >foo1
-$awk 'length($0) > 10' foo >foo2
-cmp -s foo1 foo2 || error 'last number bug'
+12345678901' >"${foo}"
+echo '12345678901' >"${foo1}"
+$awk 'length($0) > 10' "${foo}" >"${foo2}"
+cmp -s "${foo1}" "${foo2}" || error 'last number bug'
 
 # check some \ sequences in strings (ascii)
-echo HIJKL >foo1
-echo foo | $awk '{ print "H\x49\x4a\x4BL" }' >foo2
-cmp -s foo1 foo2 || error 'hex string cvt'
+echo HIJKL >"${foo1}"
+echo "${foo}" | $awk '{ print "H\x49\x4a\x4BL" }' >"${foo2}"
+cmp -s "${foo1}" "${foo2}" || error 'hex string cvt'
 
-echo 012x45 >foo1
-$awk 'BEGIN { print "0\061\62x\0645" }' >foo2
-cmp -s foo1 foo2 || error 'oct string cvt'
+echo 012x45 >"${foo1}"
+$awk 'BEGIN { print "0\061\62x\0645" }' >"${foo2}"
+cmp -s "${foo1}" "${foo2}" || error 'oct string cvt'
 
 # $i++ means ($i)++
-echo 3 5 | $awk '{ i = 1; print $i++ ; print $1, i }' >foo1
+echo 3 5 | $awk '{ i = 1; print $i++ ; print $1, i }' >"${foo1}"
 echo '3
-4 1' >foo2
-cmp -s foo1 foo2 || error 'bad field increment'
+4 1' >"${foo2}"
+cmp -s "${foo1}" "${foo2}" || error 'bad field increment'
 
 # makes sure that fields are recomputed even if self-assignment
 # take into account that subtracting from NF now rebuilds the record
 echo 'a b c
 s p q r
-x y z' >foo
+x y z' >"${foo}"
 echo 'a
 s p
-x' >foo1
-$awk '{ NF -= 2; $1 = $1; print }' <foo >foo2
-diff foo1 foo2 || echo 1>&2 "BAD: T.misc bad field self-assignment"
+x' >"${foo1}"
+$awk '{ NF -= 2; $1 = $1; print }' <"${foo}" >"${foo2}"
+diff "${foo1}" "${foo2}" || echo 1>&2 "BAD: T.misc bad field self-assignment"
 
 echo '1
-1' >foo1
-$awk 'BEGIN {x = 1; print x; x = x; print x}' >foo2
-diff foo1 foo2 || echo 1>&2 "BAD: T.misc bad self-assignment"
+1' >"${foo1}"
+$awk 'BEGIN {x = 1; print x; x = x; print x}' >"${foo2}"
+diff "${foo1}" "${foo2}" || echo 1>&2 "BAD: T.misc bad self-assignment"
 
-echo 573109312 | $awk '{print $1*4}' >foo1
-echo 2292437248 >foo2
-diff foo1 foo2 || echo 1>&2 "BAD: T.misc bad overflow"
+echo 573109312 | $awk '{print $1*4}' >"${foo1}"
+echo 2292437248 >"${foo2}"
+diff "${foo1}" "${foo2}" || echo 1>&2 "BAD: T.misc bad overflow"
 
 # note that there are 8-bit characters in the echo
 # some shells will probably screw this up.
 echo '#
 code  1
 code  2' |
-$awk '/^#/' >foo1
-echo '#' >foo2
-diff foo1 foo2 || echo 1>&2 "BAD: T.misc bad match of 8-bit char"
+$awk '/^#/' >"${foo1}"
+echo '#' >"${foo2}"
+diff "${foo1}" "${foo2}" || echo 1>&2 "BAD: T.misc bad match of 8-bit char"
 
 echo hello |
 $awk 'BEGIN	{ FILENAME = "/etc/passwd" }
@@ -122,20 +134,20 @@ END { if (x[1] > x[2]) print "BAD: T.misc: $0 is not NUM" }'
 $awk 'BEGIN {
 	npad = substr("alexander" "           ",1,15)
 	print npad
-	}' >foo
-grep '\\' foo && echo 1>&2 "BAD: T.misc alexander fails"
+	}' >"${foo}"
+grep '\\' "${foo}" && echo 1>&2 "BAD: T.misc alexander fails"
 
 # This should give an error about function arguments
 $awk '
 function foo(x) { print "x is" x }
 BEGIN { foo(foo) }
-' 2>foo
-grep "can't use function foo" foo >/dev/null || echo 1>&2 "BAD: T.misc fcn args"
+' 2>"${foo}"
+grep "can't use function foo" "${foo}" >/dev/null || echo 1>&2 "BAD: T.misc fcn args"
 
 
 # gawk defref test; should give error about undefined function
-$awk 'BEGIN { foo() }' 2>foo
-grep "calling undefined function foo" foo >/dev/null || echo 1>&2 "BAD: T.misc undefined function"
+$awk 'BEGIN { foo() }' 2>"${foo}"
+grep "calling undefined function foo" "${foo}" >/dev/null || echo 1>&2 "BAD: T.misc undefined function"
 
 
 # gawk arrayparm test; should give error about function
@@ -155,15 +167,15 @@ function bug1(i) {
 function bug2(arg) {
     bot[arg]=arg;
 }
-' 2>foo
-grep "can.t assign to foo" foo >/dev/null || echo 1>&2 "BAD: T.misc foo bug"
+' 2>"${foo}"
+grep "can.t assign to foo" "${foo}" >/dev/null || echo 1>&2 "BAD: T.misc foo bug"
 
 
 # This should be a syntax error
 $awk '
 !x = y
-' 2>foo
-grep "syntax error" foo >/dev/null || echo 1>&2 "BAD: T.misc syntax error !x=y fails"
+' 2>"${foo}"
+grep "syntax error" "${foo}" >/dev/null || echo 1>&2 "BAD: T.misc syntax error !x=y fails"
 
 # This should print bbb
 $awk '
@@ -172,8 +184,8 @@ BEGIN { up[1] = "a"
 	print x x "bbb"
 	exit
       }
-' >foo
-grep bbb foo >/dev/null || echo 1>&2 "BAD: T.misc gsub failed"
+' >"${foo}"
+grep bbb "${foo}" >/dev/null || echo 1>&2 "BAD: T.misc gsub failed"
 
 echo yes |
 $awk '
@@ -187,50 +199,50 @@ $awk 'BEGIN { unireghf() }
 function unireghf(hfeed) { hfeed[1] = 0 }'
 if test -r core; then echo 1>&2 "BAD: T.misc unireghf dropped core"; fi
 
-echo x | $awk '/[/]/' 2>foo
-grep 'nonterminated character class' foo >/dev/null || error 'BAD: T.misc nonterminated fails'
+echo x | $awk '/[/]/' 2>"${foo}"
+grep 'nonterminated character class' "${foo}" >/dev/null || error 'BAD: T.misc nonterminated fails'
 if test -r core; then echo 1>&2 "BAD: T.misc nonterminated dropped core"; fi
 
 $awk '
 function f() { return 12345 }
 BEGIN { printf "<%s>\n", f() }
-' >foo
-grep '<12345>' foo >/dev/null || error '<12345> fails'
+' >"${foo}"
+grep '<12345>' "${foo}" >/dev/null || error '<12345> fails'
 
 echo 'abc
 def
 
 ghi
-jkl' >foo
+jkl' >"${foo}"
 $awk '
 BEGIN {	RS = ""
-	while (getline <"foo")
+	while (getline <"'"${foo}"'")
 		print
-}' >foo1
-$awk 'END {print NR}' foo1 | grep 4 >/dev/null || error 'abcdef fails'
+}' >"${foo1}"
+$awk 'END {print NR}' "${foo1}" | grep 4 >/dev/null || error 'abcdef fails'
 
 # Test for RS regex matching an empty record at EOF
-echo a | $awk 1 RS='a\n' > foo1
-cat << \EOF > foo2
+echo a | $awk 1 RS='a\n' > "${foo1}"
+cat << \EOF > "${foo2}"
 
 EOF
-diff foo1 foo2 || error 'RS regex matching an empty record at EOF fails'
+diff "${foo1}" "${foo2}" || error 'RS regex matching an empty record at EOF fails'
 
 # Test for RS regex being reapplied
-echo aaa1a2a | $awk 1 RS='^a' >foo1
-cat << \EOF > foo2
+echo aaa1a2a | $awk 1 RS='^a' >"${foo1}"
+cat << \EOF > "${foo2}"
 
 aa1a2a
 
 EOF
-diff foo1 foo2 || error '^regex reapplied fails'
+diff "${foo1}" "${foo2}" || error '^regex reapplied fails'
 
 # ^-anchored RS matching should be active at the start of each input file
-tee foo1 foo2 >foo3 << \EOF
+tee "${foo1}" "${foo2}" >"${foo3}" << \EOF
 aaa
 EOF
-$awk 1 RS='^a' foo1 foo2 foo3 >foo4
-cat << \EOF > foo5
+$awk 1 RS='^a' "${foo1}" "${foo2}" "${foo3}" >"${foo4}"
+cat << \EOF > "${foo5}"
 
 aa
 
@@ -241,30 +253,30 @@ aa
 aa
 
 EOF
-diff foo4 foo5 || error '^RS matches the start of every input file fails'
+diff "${foo4}" "${foo5}" || error '^RS matches the start of every input file fails'
 
 # The following should not produce a warning about changing a constant
 # nor about a curdled tempcell list
 $awk 'function f(x) { x = 2 }
-BEGIN { f(1) }' >foo
-grep '^' foo && echo 'BAD: test constant change fails'
+BEGIN { f(1) }' >"${foo}"
+grep '^' "${foo}" && echo 'BAD: test constant change fails'
 
 # The following should not produce a warning about a curdled tempcell list
 $awk 'function f(x) { x }
-BEGIN { f(1) }' >foo
-grep '^' foo && echo 'BAD: test tempcell list fails'
+BEGIN { f(1) }' >"${foo}"
+grep '^' "${foo}" && echo 'BAD: test tempcell list fails'
 
-$awk 'BEGIN { print 9, a=10, 11; print a; exit }' >foo1
+$awk 'BEGIN { print 9, a=10, 11; print a; exit }' >"${foo1}"
 echo '9 10 11
-10' >foo2
-diff foo1 foo2 || error '(embedded expression)'
+10' >"${foo2}"
+diff "${foo1}" "${foo2}" || error '(embedded expression)'
 
 echo "abc defgh ijkl" | $awk '
-  { $1 = ""; line = $0; print line; print $0; $0 = line; print $0 }' >foo1
+  { $1 = ""; line = $0; print line; print $0; $0 = line; print $0 }' >"${foo1}"
 echo " defgh ijkl
  defgh ijkl
- defgh ijkl" >foo2
-diff foo1 foo2 || error '(assignment to $0)'
+ defgh ijkl" >"${foo2}"
+diff "${foo1}" "${foo2}" || error '(assignment to $0)'
 
 $awk '
 function min(a, b)
@@ -283,8 +295,8 @@ $awk '
 function expand(chart) {
 	getline chart < "CHAR.ticks"
 }
-' >foo
-grep '^' foo >/dev/null && error 'expand error'
+' >"${foo}"
+grep '^' "${foo}" >/dev/null && error 'expand error'
 
 $awk 'BEGIN { print 1e40 }' >/dev/null
 if test -r core; then echo 1>&2 "BAD: T.misc 1E40 dropped core"; fi
@@ -298,13 +310,13 @@ $NF==2	{o1=%1; o2=$2; first=0}
 if test -r core; then echo 1>&2 "BAD: T.misc first/abs dropped core"; fi
 
 # The following syntax error should not dump core:
-$awk '{ n = split($1, address, !); print address[1] }' 2>foo
-grep 'illegal statement' foo >/dev/null || error 'split error'
+$awk '{ n = split($1, address, !); print address[1] }' 2>"${foo}"
+grep 'illegal statement' "${foo}" >/dev/null || error 'split error'
 if test -r core; then echo 1>&2 "BAD: T.misc split! dropped core"; fi
 
 # The following should cause a syntax error message
-$awk 'BEGIN {"hello"}' 2>foo
-grep 'illegal statement' foo >/dev/null || error 'hello error'
+$awk 'BEGIN {"hello"}' 2>"${foo}"
+grep 'illegal statement' "${foo}" >/dev/null || error 'hello error'
 
 # The following should give a syntax error message:
 $awk '
@@ -313,12 +325,12 @@ function pile(c,     r) {
 }
 
 { pile($1) }
-' 2>foo
-grep 'context is' foo >/dev/null || error 'pile error'
+' 2>"${foo}"
+grep 'context is' "${foo}" >/dev/null || error 'pile error'
 
 # This should complain about missing atan2 argument:
-$awk 'BEGIN { atan2(1) }' 2>foo
-grep 'requires two arg' foo >/dev/null || error 'atan2 error'
+$awk 'BEGIN { atan2(1) }' 2>"${foo}"
+grep 'requires two arg' "${foo}" >/dev/null || error 'atan2 error'
 
 # This should not core dump:
 $awk 'BEGIN { f() }
@@ -329,93 +341,93 @@ if test -r core; then echo 1>&2 "BAD: T.misc delete dropped core"; fi
 # nasty one:  should not be able to overwrite constants
 $awk 'BEGIN { gsub(/ana/,"anda","banana")
 		printf "the monkey ate a %s\n", "banana" }
-' >/dev/null 2>foo
-grep 'syntax error' foo >/dev/null || error 'gsub banana error'
+' >/dev/null 2>"${foo}"
+grep 'syntax error' "${foo}" >/dev/null || error 'gsub banana error'
 
 # nasty one:  should not be able to overwrite constants
 $awk 'BEGIN { sub(/ana/,"anda","banana")
 		printf "the monkey ate a %s\n", "banana" }
-' >/dev/null 2>foo
-grep 'syntax error' foo >/dev/null || error 'sub banana error'
+' >/dev/null 2>"${foo}"
+grep 'syntax error' "${foo}" >/dev/null || error 'sub banana error'
 
 # line numbers used to double-count comments
 $awk '#
 #
 #
 /x
-' >/dev/null 2>foo
-grep 'line [45]' foo >/dev/null || error 'lineno'
+' >/dev/null 2>"${foo}"
+grep 'line [45]' "${foo}" >/dev/null || error 'lineno'
 
-printf 'x\f\r\b\v\a\\y\n' >foo1
-$awk 'BEGIN { print "x\f\r\b\v\a\\y" }' >foo2
-cmp -s foo1 foo2 || error 'weird chars'
+printf 'x\f\r\b\v\a\\y\n' >"${foo1}"
+$awk 'BEGIN { print "x\f\r\b\v\a\\y" }' >"${foo2}"
+cmp -s "${foo1}" "${foo2}" || error 'weird chars'
 
-echo 0 >foo1
+echo 0 >"${foo1}"
 $awk '	BEGIN { exit }
 	{ print }
-	END { print NR }' >foo2
-cmp -s foo1 foo2 || error 'BEGIN exit'
+	END { print NR }' >"${foo2}"
+cmp -s "${foo1}" "${foo2}" || error 'BEGIN exit'
 
-echo 1 >foo1
+echo 1 >"${foo1}"
 $awk '	{ exit }
-	END { print NR }' /etc/passwd >foo2
-cmp -s foo1 foo2 || error 'immmediate exit'
+	END { print NR }' /etc/passwd >"${foo2}"
+cmp -s "${foo1}" "${foo2}" || error 'immmediate exit'
 
-echo 1 >foo1
+echo 1 >"${foo1}"
 $awk '	{i = 1; while (i <= NF) {if (i == NF) exit; i++ } }
-	END { print NR }' /etc/passwd >foo2
-cmp -s foo1 foo2 || error 'immmediate exit 2'
+	END { print NR }' /etc/passwd >"${foo2}"
+cmp -s "${foo1}" "${foo2}" || error 'immmediate exit 2'
 
-echo 1 >foo1
+echo 1 >"${foo1}"
 $awk '	function f() {
 		i = 1; while (i <= NF) {if (i == NF) return NR; i++ }
 	}
 	{ if (f() == 1) exit }
-	END { print NR }' /etc/passwd >foo2
-cmp -s foo1 foo2 || error 'while return'
+	END { print NR }' /etc/passwd >"${foo2}"
+cmp -s "${foo1}" "${foo2}" || error 'while return'
 
-echo 1 >foo1
+echo 1 >"${foo1}"
 $awk '	function f() {
 		split("a b c", arr)
 		for (i in arr) {if (i == 3) return NR; i++ }
 	}
 	{ if (f() == 1) exit }
-	END { print NR }' /etc/passwd >foo2
-cmp -s foo1 foo2 || error 'while return'
+	END { print NR }' /etc/passwd >"${foo2}"
+cmp -s "${foo1}" "${foo2}" || error 'while return'
 
-echo 1 >foo1
+echo 1 >"${foo1}"
 $awk '	{i = 1; do { if (i == NF) exit; i++ } while (i <= NF) }
-	END { print NR }' /etc/passwd >foo2
-cmp -s foo1 foo2 || error 'immmediate exit 3'
+	END { print NR }' /etc/passwd >"${foo2}"
+cmp -s "${foo1}" "${foo2}" || error 'immmediate exit 3'
 
-echo 1 >foo1
+echo 1 >"${foo1}"
 $awk '	function f() {
 		i = 1; do { if (i == NF) return NR; i++ } while (i <= NF)
 	}
 	{ if (f() == 1) exit }
-	END { print NR }' /etc/passwd >foo2
-cmp -s foo1 foo2 || error 'do return'
+	END { print NR }' /etc/passwd >"${foo2}"
+cmp -s "${foo1}" "${foo2}" || error 'do return'
 
-echo 1 >foo1
+echo 1 >"${foo1}"
 $awk '	{i = 1; do { if (i == NF) break; i++ } while (i <= NF); exit }
-	END { print NR }' /etc/passwd >foo2
-cmp -s foo1 foo2 || error 'immmediate exit 4'
+	END { print NR }' /etc/passwd >"${foo2}"
+cmp -s "${foo1}" "${foo2}" || error 'immmediate exit 4'
 
-echo 1 >foo1
+echo 1 >"${foo1}"
 $awk '	{ n = split($0, x)
 	  for (i in x) {
 	 	if (i == 1)
 			exit } }
-	END { print NR }' /etc/passwd >foo2
-cmp -s foo1 foo2 || error 'immmediate exit 5'
+	END { print NR }' /etc/passwd >"${foo2}"
+cmp -s "${foo1}" "${foo2}" || error 'immmediate exit 5'
 
-echo XXXXXXXX >foo1
+echo XXXXXXXX >"${foo1}"
 $awk 'BEGIN { s = "ab\fc\rd\be"
-	t = s; 	gsub("[" s "]", "X", t); print t }' >foo2
-cmp -s foo1 foo2 || error 'weird escapes in char class'
+	t = s; 	gsub("[" s "]", "X", t); print t }' >"${foo2}"
+cmp -s "${foo1}" "${foo2}" || error 'weird escapes in char class'
 
-$awk '{}' /etc/passwd glop/glop >foo 2>foo2
-grep "can't open.*glop" foo2 >/dev/null || echo "BAD: T.misc can't open"
+$awk '{}' /etc/passwd glop/glop >"${foo}" 2>"${foo2}"
+grep "can't open.*glop" "${foo2}" >/dev/null || echo "BAD: T.misc can't open"
 
 echo '
 
@@ -428,61 +440,61 @@ b
 
 c
 
-' >foo
-echo 3 >foo1
-$awk 'BEGIN { RS = "" }; END { print NR }' foo >foo2
-cmp -s foo1 foo2 || error 'RS botch'
+' >"${foo}"
+echo 3 >"${foo1}"
+$awk 'BEGIN { RS = "" }; END { print NR }' "${foo}" >"${foo2}"
+cmp -s "${foo1}" "${foo2}" || error 'RS botch'
 
 $awk 'BEGIN \
 	{
 		print "hello, world"
 	}
-}}}' >foo1 2>foo2
-grep 'source line 4' foo2 >/dev/null 2>&1 || error 'continuation line number'
+}}}' >"${foo1}" 2>"${foo2}"
+grep 'source line 4' "${foo2}" >/dev/null 2>&1 || error 'continuation line number'
 
 
-echo 111 222 333 >foo
-$awk '{ f[1]=1; f[2]=2; print $f[1], $f[1]++, $f[2], f[1], f[2] }' foo >foo2
-echo 111 111 222 2 2 >foo1
-cmp -s foo1 foo2 || error '$f[1]++'
-
-
-# These should be syntax errors
-$awk . 2>foo
-grep "syntax error" foo >/dev/null || echo 1>&2 "BAD: T.misc syntax error . fails"
-
-$awk .. 2>foo
-grep "syntax error" foo >/dev/null || echo 1>&2 "BAD: T.misc syntax error .. fails"
-
-$awk .E. 2>foo
-grep "syntax error" foo >/dev/null || echo 1>&2 "BAD: T.misc syntax error .E. fails"
-
-$awk .++. 2>foo
-grep "syntax error" foo >/dev/null || echo 1>&2 "BAD: T.misc syntax error .++. fails"
-
+echo 111 222 333 >"${foo}"
+$awk '{ f[1]=1; f[2]=2; print $f[1], $f[1]++, $f[2], f[1], f[2] }' "${foo}" >"${foo2}"
+echo 111 111 222 2 2 >"${foo1}"
+cmp -s "${foo1}" "${foo2}" || error '$f[1]++'
 
 
 # These should be syntax errors
-$awk '$' 2>foo
-grep "unexpected" foo >/dev/null || echo 1>&2 "BAD: T.misc syntax error $ fails"
+$awk . 2>"${foo}"
+grep "syntax error" "${foo}" >/dev/null || echo 1>&2 "BAD: T.misc syntax error . fails"
 
-$awk '{print $' 2>foo
-grep "unexpected" foo >/dev/null || echo 1>&2 "BAD: T.misc syntax error $2 fails"
+$awk .. 2>"${foo}"
+grep "syntax error" "${foo}" >/dev/null || echo 1>&2 "BAD: T.misc syntax error .. fails"
 
-$awk '"' 2>foo
-grep "non-terminated" foo >/dev/null || echo 1>&2 "BAD: T.misc bare quote fails"
+$awk .E. 2>"${foo}"
+grep "syntax error" "${foo}" >/dev/null || echo 1>&2 "BAD: T.misc syntax error .E. fails"
+
+$awk .++. 2>"${foo}"
+grep "syntax error" "${foo}" >/dev/null || echo 1>&2 "BAD: T.misc syntax error .++. fails"
+
+
+
+# These should be syntax errors
+$awk '$' 2>"${foo}"
+grep "unexpected" "${foo}" >/dev/null || echo 1>&2 "BAD: T.misc syntax error $ fails"
+
+$awk '{print $' 2>"${foo}"
+grep "unexpected" "${foo}" >/dev/null || echo 1>&2 "BAD: T.misc syntax error $2 fails"
+
+$awk '"' 2>"${foo}"
+grep "non-terminated" "${foo}" >/dev/null || echo 1>&2 "BAD: T.misc bare quote fails"
 
 
 # %c of 0 is explicit null byte
 
-echo '3' >foo1
-$awk 'BEGIN {printf("%c%c\n", 0, 0) }' | wc | $awk '{print $3}' >foo2
-cmp -s foo1 foo2 || error 'null byte'
+echo '3' >"${foo1}"
+$awk 'BEGIN {printf("%c%c\n", 0, 0) }' | wc | $awk '{print $3}' >"${foo2}"
+cmp -s "${foo1}" "${foo2}" || error 'null byte'
 
 # non-terminated RE
 
-$awk /xyz >foo 2>&1
-grep "non-terminated" foo >/dev/null || echo 1>&2 "BAD: T.misc non-terminated RE"
+$awk /xyz >"${foo}" 2>&1
+grep "non-terminated" "${foo}" >/dev/null || echo 1>&2 "BAD: T.misc non-terminated RE"
 
 # next several were infinite loops, found by brian tsang.
 # this is his example:
@@ -494,38 +506,38 @@ $awk 'BEGIN {
     case "google":
 	break
     }
-}' >foo 2>&1
-grep "illegal statement" foo >/dev/null || echo 1>&2 "BAD: T.misc looping syntax error 1"
+}' >"${foo}" 2>&1
+grep "illegal statement" "${foo}" >/dev/null || echo 1>&2 "BAD: T.misc looping syntax error 1"
 
-$awk 'BEGIN { s { c /./ } }' >foo 2>&1
-grep "illegal statement" foo >/dev/null || echo 1>&2 "BAD: T.misc looping syntax error 2"
+$awk 'BEGIN { s { c /./ } }' >"${foo}" 2>&1
+grep "illegal statement" "${foo}" >/dev/null || echo 1>&2 "BAD: T.misc looping syntax error 2"
 
-$awk 'BEGIN { s { c /../ } }' >foo 2>&1
-grep "illegal statement" foo >/dev/null || echo 1>&2 "BAD: T.misc looping syntax error 3"
+$awk 'BEGIN { s { c /../ } }' >"${foo}" 2>&1
+grep "illegal statement" "${foo}" >/dev/null || echo 1>&2 "BAD: T.misc looping syntax error 3"
 
-$awk 'BEGIN {printf "%2$s %1$s\n", "a", "b"}' >foo 2>&1
-grep "'$' not permitted in awk formats" foo >/dev/null || echo 1>&2 "BAD: T.misc '$' not permitted in formats"
+$awk 'BEGIN {printf "%2$s %1$s\n", "a", "b"}' >"${foo}" 2>&1
+grep "'$' not permitted in awk formats" "${foo}" >/dev/null || echo 1>&2 "BAD: T.misc '$' not permitted in formats"
 
 echo 'a
 b c
-de fg hi' >foo0
-$awk 'END { print NF, $0 }' foo0 >foo1
-awk '{ print NF, $0 }' foo0| tail -1 >foo2
-cmp -s foo1 foo2 || error 'END must preserve $0'
+de fg hi' >"${foo0}"
+$awk 'END { print NF, $0 }' "${foo0}" >"${foo1}"
+awk '{ print NF, $0 }' "${foo0}"| tail -1 >"${foo2}"
+cmp -s "${foo1}" "${foo2}" || error 'END must preserve $0'
 
-echo 'fg hi' >foo0
-$awk 'END { print NF, $0 }' foo0 >foo1
-awk '{ print NF, $0 }' foo0| tail -1 >foo2
-cmp -s foo1 foo2 || error 'END must preserve $0'
+echo 'fg hi' >"${foo0}"
+$awk 'END { print NF, $0 }' "${foo0}" >"${foo1}"
+awk '{ print NF, $0 }' "${foo0}"| tail -1 >"${foo2}"
+cmp -s "${foo1}" "${foo2}" || error 'END must preserve $0'
 
-echo '' >foo0
-$awk 'END { print NF, $0 }' foo0 >foo1
-awk '{ print NF, $0 }' foo0| tail -1 >foo2
-cmp -s foo1 foo2 || error 'END must preserve $0'
+echo '' >"${foo0}"
+$awk 'END { print NF, $0 }' "${foo0}" >"${foo1}"
+awk '{ print NF, $0 }' "${foo0}"| tail -1 >"${foo2}"
+cmp -s "${foo1}" "${foo2}" || error 'END must preserve $0'
 
 # Check for nonzero exit status on I/O error.
-echo 'E 2' >foo1
-(trap '' PIPE; "$awk" 'BEGIN { print "hi"; }' 2>/dev/null; echo "E $?" >foo2) | :
-cmp -s foo1 foo2 || error 'exit status on I/O error'
+echo 'E 2' >"${foo1}"
+(trap '' PIPE; "$awk" 'BEGIN { print "hi"; }' 2>/dev/null; echo "E $?" >"${foo2}") | :
+cmp -s "${foo1}" "${foo2}" || error 'exit status on I/O error'
 
 exit $exit_code

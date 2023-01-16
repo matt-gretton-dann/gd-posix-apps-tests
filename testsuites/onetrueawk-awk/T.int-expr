@@ -7,19 +7,24 @@
 # Licence: SPDX Identifier: Apache-2.0
 
 testname="$(basename "$0")"
+run_dir="$(pwd)"
+cd "$(dirname "$0")"
+src_dir="$(pwd)"
+cd "${run_dir}"
+
 exit_code=0
 error() {
   echo "$testname: FAIL - $1"
   exit_code=1
 }
 
-echo T.int-expr: test interval expressions
-
 awk=${awk-../a.out}
+foo_in="${run_dir}/${testname}.output.in"
+foo1="${run_dir}/${testname}.output.1"
+foo2="${run_dir}/${testname}.output.2"
+prog="${run_dir}/${testname}.prog"
 
-rm -f foo
-
-cat << \EOF > prog
+cat << \EOF > "${prog}"
 NF == 0		{ next }
 $1 == "pat"	{ pattern = $2; next }
 {
@@ -28,7 +33,7 @@ $1 == "pat"	{ pattern = $2; next }
 }
 EOF
 
-cat << \EOF > foo.in
+cat << \EOF > "${foo_in}"
 pat	ab{0}c
 ac	1
 abc	0
@@ -93,7 +98,7 @@ abbbc	1
 abbbbc	0
 EOF
 
-cat << \EOF > foo1
+cat << \EOF > "${foo1}"
 ac ~ /ab{0}c/ -> should be 1, is 1
 abc ~ /ab{0}c/ -> should be 0, is 0
 ac ~ /a(b{0})c/ -> should be 1, is 1
@@ -134,8 +139,8 @@ abbbbc ~ /ab{1,3}c/ -> should be 0, is 0
 EOF
 
 
-$awk -f prog foo.in > foo2
-diff foo1 foo2 || error '(1)'
-rm -f prog
+$awk -f "${prog}" "${foo_in}" > "${foo2}"
+diff "${foo1}" "${foo2}" || error '(1)'
+rm -f "${prog}" "${foo_in}" "${foo1}" "${foo2}"
 
 exit $exit_code

@@ -7,35 +7,42 @@
 # Licence: SPDX Identifier: Apache-2.0
 
 testname="$(basename "$0")"
+run_dir="$(pwd)"
+cd "$(dirname "$0")"
+src_dir="$(pwd)"
+cd "${run_dir}"
+
 exit_code=0
 error() {
   echo "$testname: FAIL - $1"
   exit_code=1
 }
 
-echo T.getline: test getline function
-
 awk=${awk-../a.out}
+foo="${run_dir}/${testname}.output.0"
+foo1="${run_dir}/${testname}.output.1"
 
-who >foo1
-cat foo1 | $awk '
+who >"${foo1}"
+cat "${foo1}" | $awk '
 BEGIN {
 	while (getline)
 		print
 	exit
 }
-' >foo
-cmp -s foo1 foo || error '(bare getline)'
+' >"${foo}"
+cmp -s "${foo1}" "${foo}" || error '(bare getline)'
+rm -f "${foo1}" "${foo}"
 
-who >foo1
-cat foo1 | $awk '
+who >"${foo1}"
+cat "${foo1}" | $awk '
 BEGIN {
 	while (getline xxx)
 		print xxx
 	exit
 }
-' >foo
-cmp -s foo1 foo || error '(getline xxx)'
+' >"${foo}"
+cmp -s "${foo1}" "${foo}" || error '(getline xxx)'
+rm -f "${foo1}" "${foo}"
 
 $awk '
 BEGIN {
@@ -43,8 +50,9 @@ BEGIN {
 		print
 	exit
 }
-' >foo
-cmp -s /etc/passwd foo || error '(getline <file)'
+' >"${foo}"
+cmp -s /etc/passwd "${foo}" || error '(getline <file)'
+rm -f "${foo1}" "${foo}"
 
 cat /etc/passwd | $awk '
 BEGIN {
@@ -52,8 +60,9 @@ BEGIN {
 		print
 	exit
 }
-' >foo
-cmp -s /etc/passwd foo || error '(getline <"-")'
+' >"${foo}"
+cmp -s /etc/passwd "${foo}" || error '(getline <"-")'
+rm -f "${foo1}" "${foo}"
 
 $awk '
 BEGIN {
@@ -61,8 +70,9 @@ BEGIN {
 		print
 	exit
 }
-' /etc/passwd >foo
-cmp -s /etc/passwd foo || error '(getline <arg)'
+' /etc/passwd >"${foo}"
+cmp -s /etc/passwd "${foo}" || error '(getline <arg)'
+rm -f "${foo1}" "${foo}"
 
 $awk '
 BEGIN {
@@ -70,8 +80,9 @@ BEGIN {
 		print x
 	exit
 }
-' /etc/passwd >foo
-cmp -s /etc/passwd foo || error '(getline x <arg)'
+' /etc/passwd >"${foo}"
+cmp -s /etc/passwd "${foo}" || error '(getline x <arg)'
+rm -f "${foo1}" "${foo}"
 
 $awk '
 BEGIN {
@@ -79,8 +90,9 @@ BEGIN {
 		print
 	exit
 }
-' /etc/passwd >foo
-cmp -s /etc/passwd foo || error '(cat arg | getline)'
+' /etc/passwd >"${foo}"
+cmp -s /etc/passwd "${foo}" || error '(cat arg | getline)'
+rm -f "${foo1}" "${foo}"
 
 $awk '
 BEGIN {
@@ -88,14 +100,16 @@ BEGIN {
 		print x
 	exit
 }
-' /etc/passwd >foo
-cmp -s /etc/passwd foo || error '(cat arg | getline x)'
+' /etc/passwd >"${foo}"
+cmp -s /etc/passwd "${foo}" || error '(cat arg | getline x)'
+rm -f "${foo1}" "${foo}"
 
-$awk ' BEGIN { print getline <"/glop/glop/glop" } ' >foo
-echo '-1' >foo1
-cmp -s foo foo1 || error '(non-existent file)'
+$awk ' BEGIN { print getline <"/glop/glop/glop" } ' >"${foo}"
+echo '-1' >"${foo1}"
+cmp -s "${foo}" "${foo1}" || error '(non-existent file)'
+rm -f "${foo1}" "${foo}"
 
-echo 'false false equal' >foo1
+echo 'false false equal' >"${foo1}"
 $awk 'BEGIN {
 	"echo 0" | getline
 	if ($0) printf "true "
@@ -104,12 +118,14 @@ $awk 'BEGIN {
 	else printf "false "
 	if ($0==$1) printf "equal\n"
 	else printf "not equal\n"
-}' >foo2
-cmp -s foo1 foo2 || echo 1>&2 'BAD: T.getline bad $0 type in cmd|getline'
+}' >"${foo}"
+cmp -s "${foo1}" "${foo}" || echo 1>&2 'BAD: T.getline bad $0 type in cmd|getline'
+rm -f "${foo1}" "${foo}"
 
 echo 'L1
-L2' | $awk 'BEGIN { $0="old stuff"; $1="new"; getline x; print}' >foo1
-echo 'new stuff' >foo2
-cmp -s foo1 foo2 || echo 1>&2 'BAD: T.getline bad update $0'
+L2' | $awk 'BEGIN { $0="old stuff"; $1="new"; getline x; print}' >"${foo1}"
+echo 'new stuff' >"${foo}"
+cmp -s "${foo1}" "${foo}" || echo 1>&2 'BAD: T.getline bad update $0'
+rm -f "${foo1}" "${foo}"
 
 exit $exit_code

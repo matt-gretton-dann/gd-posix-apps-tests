@@ -12,28 +12,33 @@ src_dir="$(pwd)"
 cd "${run_dir}"
 
 testname="$(basename "$0")"
+run_dir="$(pwd)"
+cd "$(dirname "$0")" || exit 1
+src_dir="$(pwd)"
+cd "${run_dir}" || exit 1
+
 exit_code=0
 error() {
   echo "$testname: FAIL - $1"
   exit_code=1
 }
 
-echo T.nextfile: tests of nextfile command
-
 awk=${awk-../a.out}
+foo0="${run_dir}/${testname}.output.0"
+foo1="${run_dir}/${testname}.output.1"
 
 # 1st lines of some files
-rm -f foo0
+rm -f "${foo0}"
 for i in "$src_dir"/T.*
 do
-	sed 1q $i >>foo0
+	sed 1q $i >>"${foo0}"
 done
 
 $awk '
 { print $0; nextfile }	# print first line, quit
-' "$src_dir"/T.* >foo1 || error "awk 1"
+' "$src_dir"/T.* >"${foo1}" || error "awk 1"
 
-diff foo0 foo1 || error '1'
+diff "${foo0}" "${foo1}" || error '1'
 
 $awk '	# same test but in a for loop
 { print $0;
@@ -42,9 +47,9 @@ $awk '	# same test but in a for loop
 		nextfile
   print "nextfile for error"
 }	# print first line, quit
-' "$src_dir/"T.* >foo1 || error "awk 1f"
+' "$src_dir/"T.* >"${foo1}" || error "awk 1f"
 
-diff foo0 foo1 || error '1f'
+diff "${foo0}" "${foo1}" || error '1f'
 
 $awk '	# same test but in a while loop
 { print $0;
@@ -54,9 +59,9 @@ $awk '	# same test but in a while loop
 		nextfile
   print "nextfile while error"
 }	# print first line, quit
-' "$src_dir/"T.* >foo1 || error "awk 1w"
+' "$src_dir/"T.* >"${foo1}" || error "awk 1w"
 
-diff foo0 foo1 || error '1w'
+diff "${foo0}" "${foo1}" || error '1w'
 
 $awk '	# same test but in a do loop
 { print $0;
@@ -67,42 +72,42 @@ $awk '	# same test but in a do loop
   } while (i < 10)
   print "nextfile do error"
 }
-' "$src_dir/"T.* >foo1 || error "awk 1d"
+' "$src_dir/"T.* >"${foo1}" || error "awk 1d"
 
-diff foo0 foo1 || error '1d'
+diff "${foo0}" "${foo1}" || error '1d'
 
 
 # 100 lines of some files
-rm -f foo0
+rm -f "${foo0}"
 for i in "$src_dir/"T.*
 do
-	sed 100q $i >>foo0
+	sed 100q $i >>"${foo0}"
 done
 
 $awk '
 { print }
 FNR == 100 { nextfile }	# print first line, quit
-' "$src_dir/"T.* >foo1 || error "awk 2"
+' "$src_dir/"T.* >"${foo1}" || error "awk 2"
 
-diff foo0 foo1 || error '2'
+diff "${foo0}" "${foo1}" || error '2'
 
 
->foo0	# empty
-$awk ' { nextfile; print $0 }' "$src_dir/"T.* >foo1 || error "awk 3"
+>"${foo0}"	# empty
+$awk ' { nextfile; print $0 }' "$src_dir/"T.* >"${foo1}" || error "awk 3"
 
-diff foo0 foo1 || error '3'
+diff "${foo0}" "${foo1}" || error '3'
 
 # skip weird args
-rm -f foo0
+rm -f "${foo0}"
 for i in "$src_dir/"T.*
 do
-	sed 1q $i >>foo0
+	sed 1q $i >>"${foo0}"
 done
 
 $awk '
 { print $0; nextfile }	# print first line, quit
-' "$src_dir/"T.* >foo1 || error "4"
+' "$src_dir/"T.* >"${foo1}" || error "4"
 
-diff foo0 foo1 || error '4'
+diff "${foo0}" "${foo1}" || error '4'
 
 exit $exit_code
